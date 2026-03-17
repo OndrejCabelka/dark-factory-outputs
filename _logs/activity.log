@@ -1,0 +1,13 @@
+[2026-03-17 20:39:30] CEO COMMAND CENTER — SESSION STARTED
+[2026-03-17 20:39:30] CEO COMMAND CENTER — SESSION ENDED
+[2026-03-17 20:42:15] CEO COMMAND CENTER — SESSION STARTED
+[2026-03-17 20:43:44] FACTORY B — Digital Products — STARTED
+[2026-03-17 20:43:45] FACTORY B — Digital Products — FAILED: cannot import name 'validate_core_schema' from 'pydantic_core' (/opt/homebrew/lib/python3.11/site-packages/pydantic_core/__init__.py)
+[2026-03-17 20:44:08] CEO COMMAND CENTER — SESSION ENDED
+[2026-03-17 20:47:01] CEO COMMAND CENTER — SESSION STARTED
+[2026-03-17 20:47:25] FACTORY B — Digital Products — STARTED
+[2026-03-17 20:47:26] FACTORY B — Digital Products — FAILED: Anthropic native provider not available, to install: uv add "crewai[anthropic]"
+[2026-03-17 20:47:59] CEO COMMAND CENTER — SESSION ENDED
+[2026-03-17 20:48:24] CEO COMMAND CENTER — SESSION STARTED
+[2026-03-17 20:48:46] FACTORY B — Digital Products — STARTED
+[2026-03-17 20:48:49] FACTORY B — Digital Products — FAILED: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CZ9ENqSyheSyDgZod7NhL'}
