@@ -1,18 +1,25 @@
 """
-DARK FACTORY — Autonomous Scheduler
-Runs factories on schedule, pushes results to GitHub.
-Deploy on Railway for 24/7 operation.
+DARK FACTORY — Autonomous Scheduler + HTTP API
+Runs factories on schedule, exposes HTTP trigger endpoints.
 
 Schedule (UTC):
-  06:00 UTC (8:00 CZ) → Factory B: Digital Products
-  07:00 UTC (9:00 CZ) → Factory A: Web Hunter
-  08:00 UTC (10:00 CZ) → Factory C: YouTube
+  06:00 → Factory B: Digital Products
+  07:00 → Factory A: Web Hunter
+  08:00 → Factory C: YouTube
+
+HTTP API (port 8080):
+  POST /trigger/b    — run Factory B now
+  POST /trigger/a    — run Factory A now
+  POST /trigger/c    — run Factory C now
+  GET  /status       — last run info
+  GET  /health       — healthcheck
 """
 
 import os
 import sys
 import time
 import platform
+import threading
 import schedule
 import logging
 import subprocess
@@ -39,196 +46,216 @@ log = logging.getLogger("DarkFactory")
 
 GITHUB_TOKEN = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN", "")
 GITHUB_REPO  = os.getenv("GITHUB_REPO", "")
-NOTIFY_PHONE = os.getenv("NOTIFY_PHONE", "ondrej.cabelka@gmail.com")  # iMessage target
+NOTIFY_PHONE = os.getenv("NOTIFY_PHONE", os.getenv("GMAIL_ADDRESS", ""))
+IS_MAC       = platform.system() == "Darwin"
+PORT         = int(os.getenv("PORT", "8080"))
 
-IS_MAC = platform.system() == "Darwin"
+# Track status of each factory
+factory_status = {
+    "b": {"name": "Digital Products", "last_run": None, "last_result": "never", "running": False},
+    "a": {"name": "Web Hunter",       "last_run": None, "last_result": "never", "running": False},
+    "c": {"name": "YouTube",          "last_run": None, "last_result": "never", "running": False},
+}
 
 
 # ── NOTIFICATIONS ─────────────────────────────────────────────────────────────
 
 def send_imessage(message: str):
-    """Send iMessage notification (macOS only)."""
     if not IS_MAC:
         return
     try:
-        script = f'''
-tell application "Messages"
-    set targetService to 1st account whose service type = iMessage
-    set targetBuddy to participant "{NOTIFY_PHONE}" of targetService
-    send "{message}" to targetBuddy
-end tell
-'''
+        script = f'tell application "Messages" to send "{message}" to participant "{NOTIFY_PHONE}" of (1st account whose service type = iMessage)'
         subprocess.run(["osascript", "-e", script], timeout=10, check=True)
-        log.info(f"📱 iMessage sent")
+        log.info("📱 iMessage sent")
     except Exception as e:
-        log.warning(f"iMessage failed (OK on Railway): {e}")
+        log.warning(f"iMessage failed: {e}")
 
 
 def send_email_via_resend(subject: str, body: str):
-    """Send email via Resend.com (works on Railway too)."""
     resend_key = os.getenv("RESEND_API_KEY", "")
-    if not resend_key:
+    if not resend_key or not NOTIFY_PHONE:
         return
     try:
         import requests
         r = requests.post(
             "https://api.resend.com/emails",
             headers={"Authorization": f"Bearer {resend_key}", "Content-Type": "application/json"},
-            json={
-                "from": "DarkFactory <noreply@resend.dev>",
-                "to": [NOTIFY_PHONE],
-                "subject": subject,
-                "text": body,
-            }
+            json={"from": "DarkFactory <noreply@resend.dev>", "to": [NOTIFY_PHONE], "subject": subject, "text": body}
         )
         if r.status_code == 200:
             log.info("📧 Email notification sent")
-        else:
-            log.warning(f"Email failed: {r.text[:200]}")
     except Exception as e:
-        log.warning(f"Email notification failed: {e}")
+        log.warning(f"Email failed: {e}")
 
 
 def notify(title: str, message: str):
-    """Send notification via iMessage (Mac) or email (Railway)."""
-    full_msg = f"🏭 DARK FACTORY\n{title}\n{message}"
+    full = f"🏭 DARK FACTORY\n{title}\n{message}"
     if IS_MAC:
-        send_imessage(full_msg)
+        send_imessage(full)
     else:
-        send_email_via_resend(f"[DarkFactory] {title}", full_msg)
+        send_email_via_resend(f"[DarkFactory] {title}", full)
 
 
 # ── GIT PUSH ─────────────────────────────────────────────────────────────────
 
 def push_outputs_to_github(factory_name: str):
-    """Commit and push outputs to GitHub."""
     if not GITHUB_REPO or not GITHUB_TOKEN:
-        log.warning("GitHub not configured — skipping push.")
         return
-
     try:
         import git
         repo_url = f"https://{GITHUB_TOKEN}@github.com/{GITHUB_REPO}.git"
-
         try:
             repo = git.Repo(BASE_DIR)
         except git.InvalidGitRepositoryError:
             repo = git.Repo.init(BASE_DIR)
             repo.create_remote("origin", repo_url)
-            log.info("Git repo initialised.")
-
         try:
             repo.remote("origin").set_url(repo_url)
         except Exception:
             repo.create_remote("origin", repo_url)
-
         repo.config_writer().set_value("user", "name", "DarkFactory").release()
         repo.config_writer().set_value("user", "email", "darkfactory@auto.run").release()
-
         repo.git.add("_outputs/")
         repo.git.add("_logs/")
-
         if repo.is_dirty(index=True):
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-            commit_msg = f"[{factory_name}] Auto output — {timestamp}"
-            repo.index.commit(commit_msg)
+            ts = datetime.now().strftime("%Y-%m-%d %H:%M")
+            repo.index.commit(f"[{factory_name}] Auto output — {ts}")
             repo.remote("origin").push(refspec="HEAD:main", force=True)
             log.info(f"✅ Pushed to GitHub: {GITHUB_REPO}")
-        else:
-            log.info("Nothing new to push.")
-
     except Exception as e:
         log.error(f"GitHub push failed: {e}")
 
 
 # ── FACTORY RUNNER ────────────────────────────────────────────────────────────
 
-def run_factory(factory_key: str, factory_path: str, module_name: str):
-    """Load and run a factory module."""
-    log.info(f"▶ STARTING {factory_key}")
-    start = datetime.now()
+def run_factory(key: str, factory_path: str, module_name: str):
+    if factory_status[key]["running"]:
+        log.warning(f"Factory {key.upper()} already running, skipping.")
+        return False
+
+    factory_status[key]["running"] = True
+    factory_status[key]["last_run"] = datetime.now().isoformat()
+    log.info(f"▶ STARTING Factory {key.upper()} — {factory_status[key]['name']}")
+
     try:
         spec = importlib.util.spec_from_file_location(module_name, factory_path)
         mod  = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         mod.main()
-        elapsed = (datetime.now() - start).seconds
-        log.info(f"✅ {factory_key} COMPLETED in {elapsed}s")
+        factory_status[key]["last_result"] = "success"
+        log.info(f"✅ Factory {key.upper()} COMPLETED")
         return True
     except Exception as e:
-        log.error(f"❌ {factory_key} FAILED: {e}")
+        factory_status[key]["last_result"] = f"error: {e}"
+        log.error(f"❌ Factory {key.upper()} FAILED: {e}")
         return False
+    finally:
+        factory_status[key]["running"] = False
 
 
-def job_digital_products():
-    """Run Factory B and notify when product is ready to publish."""
-    ok = run_factory(
-        "Factory B — Digital Products",
-        str(BASE_DIR / "01_Digital_Products" / "factory.py"),
-        "factory_b"
-    )
+def job_b():
+    ok = run_factory("b", str(BASE_DIR / "01_Digital_Products" / "factory.py"), "factory_b")
     push_outputs_to_github("Factory-B")
-
     if ok:
-        # Find the latest generated PDF
         pdf_dir = BASE_DIR / "_outputs" / "digital_products"
         pdfs = sorted(pdf_dir.glob("*.pdf"), key=lambda f: f.stat().st_mtime, reverse=True)
-        pdf_name = pdfs[0].name if pdfs else "produkt vytvořen"
-        github_url = f"https://github.com/{GITHUB_REPO}/tree/main/_outputs/digital_products" if GITHUB_REPO else "viz _outputs/digital_products/"
+        pdf_name = pdfs[0].name if pdfs else "produkt"
+        notify("Factory B hotovo ✅", f"'{pdf_name}' připraven k publikaci na Gumroad.")
 
-        notify(
-            "Factory B hotovo ✅",
-            f"Produkt '{pdf_name}' připraven.\nPublikuj na: gumroad.com/products/new\nStáhnout: {github_url}"
-        )
-
-
-def job_web_hunter():
-    ok = run_factory(
-        "Factory A — Web Hunter",
-        str(BASE_DIR / "05_Web_Hunter" / "factory.py"),
-        "factory_a"
-    )
+def job_a():
+    ok = run_factory("a", str(BASE_DIR / "05_Web_Hunter" / "factory.py"), "factory_a")
     push_outputs_to_github("Factory-A")
     if ok:
-        notify("Factory A hotovo ✅", "Web Hunter leady připraveny.\nViz GitHub: _outputs/web_hunter/")
+        notify("Factory A hotovo ✅", "Web Hunter leady připraveny → GitHub: _outputs/web_hunter/")
 
-
-def job_youtube():
-    ok = run_factory(
-        "Factory C — YouTube",
-        str(BASE_DIR / "02_Faceless_YT" / "factory.py"),
-        "factory_c"
-    )
+def job_c():
+    ok = run_factory("c", str(BASE_DIR / "02_Faceless_YT" / "factory.py"), "factory_c")
     push_outputs_to_github("Factory-C")
     if ok:
-        notify("Factory C hotovo ✅", "YouTube skripty připraveny.\nViz GitHub: _outputs/youtube/")
+        notify("Factory C hotovo ✅", "YouTube skripty připraveny → GitHub: _outputs/youtube/")
 
 
-# ── SCHEDULE ─────────────────────────────────────────────────────────────────
+# ── HTTP API ──────────────────────────────────────────────────────────────────
 
-def setup_schedule():
-    schedule.every().day.at("06:00").do(job_digital_products)  # 8:00 CZ
-    schedule.every().day.at("07:00").do(job_web_hunter)         # 9:00 CZ
-    schedule.every().day.at("08:00").do(job_youtube)            # 10:00 CZ
+def start_api_server():
+    """Run FastAPI in a background thread so scheduler keeps running."""
+    try:
+        from fastapi import FastAPI
+        from fastapi.middleware.cors import CORSMiddleware
+        import uvicorn
+
+        api = FastAPI(title="Dark Factory API")
+        api.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+
+        job_map = {"b": job_b, "a": job_a, "c": job_c}
+
+        @api.get("/health")
+        def health():
+            return {"status": "ok", "time": datetime.now().isoformat()}
+
+        @api.get("/status")
+        def status():
+            return {
+                "factories": factory_status,
+                "github_repo": GITHUB_REPO,
+                "next_jobs": {
+                    "08:00 CZ": "Factory B — Digital Products",
+                    "09:00 CZ": "Factory A — Web Hunter",
+                    "10:00 CZ": "Factory C — YouTube",
+                }
+            }
+
+        @api.post("/trigger/{factory_key}")
+        def trigger(factory_key: str):
+            if factory_key not in job_map:
+                return {"error": f"Unknown factory '{factory_key}'. Use: a, b, c"}
+            if factory_status[factory_key]["running"]:
+                return {"status": "already_running", "factory": factory_key}
+            threading.Thread(target=job_map[factory_key], daemon=True).start()
+            return {"status": "started", "factory": factory_key, "name": factory_status[factory_key]["name"]}
+
+        @api.get("/logs")
+        def logs(lines: int = 100):
+            log_file = LOG_DIR / "scheduler.log"
+            if not log_file.exists():
+                return {"logs": []}
+            with open(log_file) as f:
+                all_lines = f.readlines()
+            return {"logs": [l.rstrip() for l in all_lines[-lines:]]}
+
+        log.info(f"🌐 API server starting on port {PORT}")
+        uvicorn.run(api, host="0.0.0.0", port=PORT, log_level="warning")
+    except Exception as e:
+        log.error(f"API server failed: {e}")
+
+
+# ── SCHEDULE + MAIN ───────────────────────────────────────────────────────────
+
+def main():
+    schedule.every().day.at("06:00").do(job_b)
+    schedule.every().day.at("07:00").do(job_a)
+    schedule.every().day.at("08:00").do(job_c)
 
     log.info("╔══════════════════════════════════════╗")
     log.info("║   DARK FACTORY — SCHEDULER ONLINE    ║")
     log.info("╚══════════════════════════════════════╝")
-    log.info(f"Platform: {'macOS (iMessage notifications)' if IS_MAC else 'Linux/Railway (email notifications)'}")
-    log.info("Schedule (CZ time): 08:00 → B | 09:00 → A | 10:00 → C")
-    log.info("Waiting for next job...")
+    log.info(f"Platform: {'macOS' if IS_MAC else 'Linux/Railway'} | API port: {PORT}")
+    log.info("Schedule (CZ): 08:00→B | 09:00→A | 10:00→C")
 
+    # Start HTTP API in background thread
+    api_thread = threading.Thread(target=start_api_server, daemon=True)
+    api_thread.start()
 
-def main():
-    setup_schedule()
+    if os.getenv("RUN_ON_STARTUP", "false").lower() == "true":
+        log.info("RUN_ON_STARTUP=true — spouštím všechny factories...")
+        job_b(); job_a(); job_c()
 
-    first_run = os.getenv("RUN_ON_STARTUP", "false").lower() == "true"
-    if first_run:
-        log.info("RUN_ON_STARTUP=true — running all factories now...")
-        job_digital_products()
-        job_web_hunter()
-        job_youtube()
-
+    log.info("Čekám na první job...")
     while True:
         schedule.run_pending()
         time.sleep(30)

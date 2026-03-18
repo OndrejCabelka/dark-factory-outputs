@@ -1,0 +1,13 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "env": {
+    "RAILWAY_TOKEN": "@railway_token",
+    "RAILWAY_PROJECT_ID": "@railway_project_id",
+    "RAILWAY_SERVICE_ID": "@railway_service_id",
+    "GITHUB_TOKEN": "@github_token",
+    "GITHUB_REPO": "@github_repo",
+    "RAILWAY_API_URL": "@railway_api_url"
+  }
+}
