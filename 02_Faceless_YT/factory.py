@@ -39,7 +39,7 @@ def build_crew():
         tools=[search_tool],
         verbose=True,
         allow_delegation=False,
-        llm="claude-3-5-sonnet-20241022",
+        llm="anthropic/claude-sonnet-4-6",
     )
 
     script_writer = Agent(
@@ -58,7 +58,7 @@ def build_crew():
         ),
         verbose=True,
         allow_delegation=False,
-        llm="claude-3-5-sonnet-20241022",
+        llm="anthropic/claude-sonnet-4-6",
     )
 
     seo_specialist = Agent(
@@ -76,7 +76,7 @@ def build_crew():
         ),
         verbose=True,
         allow_delegation=False,
-        llm="claude-3-5-sonnet-20241022",
+        llm="anthropic/claude-sonnet-4-6",
     )
 
     # ── TASKS ────────────────────────────────────────────────────────────────
