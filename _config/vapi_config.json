@@ -1,0 +1,8 @@
+{
+  "assistant_id": "4537e7d8-39ec-4e72-a6f1-7f37ea5a1afa",
+  "phone_id": "58d105d2-4dd8-4b3d-8769-f0efb98adc35",
+  "vapi_key": "181d9566-8642-44bb-a632-a011a82264ef",
+  "tool_id": "b08d1d3c-c236-4e4d-a3fb-a2a87aff8761",
+  "dashboard_url": "https://dashboard.vapi.ai",
+  "test_call_url": "https://dashboard.vapi.ai/assistants/4537e7d8-39ec-4e72-a6f1-7f37ea5a1afa"
+}
