@@ -14,7 +14,7 @@ const YELLOW = '#ffcc00'
 
 const VAPI_ASSISTANT_ID = '4537e7d8-39ec-4e72-a6f1-7f37ea5a1afa'
 const VAPI_PUBLIC_KEY   = '181d9566-8642-44bb-a632-a011a82264ef'
-const FACTORY_SCHEDULES: Record<string, number> = { b: 6, a: 7, c: 8 }
+const FACTORY_SCHEDULES: Record<string, number> = { b: 6, a: 7, c: 8, d: 9, e: 10, f: 11 }
 
 function timeAgo(iso: string | null): string {
   if (!iso) return 'nikdy'
@@ -74,7 +74,7 @@ function StatsBar({ status, outputs, health }: any) {
         { label: 'Backend', value: isOnline ? '🟢 Online' : health ? '🔴 Offline' : '⏳ ...', color: isOnline ? GREEN : health ? RED : GRAY },
         { label: 'Uptime', value: uptime, color: '#ccc' },
         { label: 'Výstupy', value: String(outputs?.total || 0), color: ORANGE },
-        { label: 'Factory OK', value: `${successCount}/3`, color: successCount === 3 ? GREEN : YELLOW },
+        { label: 'Factory OK', value: `${successCount}/6`, color: successCount === 6 ? GREEN : successCount >= 3 ? YELLOW : RED },
         { label: 'Scheduler', value: isOnline ? '✅ Běží' : '❓ Neznámo', color: isOnline ? GREEN : GRAY },
       ].map((s, i) => (
         <div key={i} style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '12px 16px' }}>
@@ -143,7 +143,7 @@ function CallButton() {
             {isConnecting ? 'Připojuji...' : isActive ? 'Hovor aktivní' : callState === 'error' ? 'Chyba připojení' : 'Zavolej Dark Factory AI'}
           </div>
           <div style={{ fontSize: 11, color: GRAY, marginTop: 3 }}>
-            {isActive ? 'Claude claude-sonnet-4-6 · CZ — řekni co chceš' : 'Mluv přímo s AI · zkratky: klávesy A / B / C spustí factory'}
+            {isActive ? 'Claude claude-sonnet-4-6 · CZ — řekni co chceš' : 'Mluv přímo s AI · zkratky: klávesy A–F spustí factory'}
           </div>
           {isActive && (
             <div style={{ marginTop: 8, display: 'flex', gap: 3, alignItems: 'center' }}>
@@ -323,7 +323,7 @@ export default function Dashboard() {
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
       const key = e.key.toLowerCase()
-      if (['a','b','c'].includes(key) && !triggering) trigger(key)
+      if (['a','b','c','d','e','f'].includes(key) && !triggering) trigger(key)
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
@@ -339,8 +339,15 @@ export default function Dashboard() {
 
   const factories = status?.factories || {}
   const grouped   = outputs?.grouped  || {}
-  const factoryLabels: Record<string, string> = { digital_products:'💰 Digital Products', web_hunter:'🕸️ Web Hunter', youtube:'🎬 YouTube' }
-  const hotkeys: Record<string, string> = { a:'A', b:'B', c:'C' }
+  const factoryLabels: Record<string, string> = {
+    digital_products: '💰 Digital Products',
+    web_hunter:       '🕸️ Web Hunter',
+    youtube:          '🎬 YouTube',
+    data_products:    '📊 Data Products',
+    seo_content:      '📝 SEO Content',
+    leads_api:        '📦 Leads API',
+  }
+  const hotkeys: Record<string, string> = { a:'A', b:'B', c:'C', d:'D', e:'E', f:'F' }
 
   // Build filtered file list
   const allFiles: any[] = Object.entries(grouped).flatMap(([factory, files]: any) =>
@@ -375,7 +382,7 @@ export default function Dashboard() {
           <Badge color={health?.status==='ok' ? GREEN : GRAY}>{health?.status==='ok' ? 'ONLINE' : health ? 'OFFLINE' : '...'}</Badge>
         </div>
         <div style={{ display:'flex', gap:16, alignItems:'center', fontSize:11, color:GRAY }}>
-          <span>Klávesy: <code style={{ color:ORANGE }}>A</code> <code style={{ color:ORANGE }}>B</code> <code style={{ color:ORANGE }}>C</code></span>
+          <span>Klávesy: {['A','B','C','D','E','F'].map(k => <code key={k} style={{ color:ORANGE, marginRight:2 }}>{k}</code>)}</span>
           <span>↻ 15s</span>
         </div>
       </div>
@@ -397,7 +404,7 @@ export default function Dashboard() {
             ? Object.entries(factories).map(([id, data]) => (
                 <FactoryCard key={id} id={id} data={data} onTrigger={trigger} triggering={triggering} hotkey={hotkeys[id]} />
               ))
-            : [0,1,2].map(i => <Skeleton key={i} h={220} />)
+            : [0,1,2,3,4,5].map(i => <Skeleton key={i} h={220} />)
           }
         </div>
 

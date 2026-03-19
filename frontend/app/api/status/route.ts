@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server'
 
-const GITHUB_REPO = process.env.GITHUB_REPO!
+const GITHUB_REPO  = process.env.GITHUB_REPO!
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN!
-const RAILWAY_TOKEN = process.env.RAILWAY_TOKEN!
-const RAILWAY_SERVICE_ID = process.env.RAILWAY_SERVICE_ID!
-const RAILWAY_PROJECT_ID = process.env.RAILWAY_PROJECT_ID!
 
 async function getGithubCommits() {
   const res = await fetch(
-    `https://api.github.com/repos/${GITHUB_REPO}/commits?per_page=10`,
+    `https://api.github.com/repos/${GITHUB_REPO}/commits?per_page=20`,
     {
       headers: {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
@@ -21,83 +18,50 @@ async function getGithubCommits() {
   return res.json()
 }
 
-async function getRailwayLogs() {
-  const query = `
-    query {
-      deploymentLogs(deploymentId: "", serviceId: "${RAILWAY_SERVICE_ID}") {
-        timestamp
-        message
-        severity
-      }
-    }
-  `
-  try {
-    const res = await fetch('https://backboard.railway.com/graphql/v2', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${RAILWAY_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ query }),
-      next: { revalidate: 10 },
-    })
-    const data = await res.json()
-    return data?.data?.deploymentLogs || []
-  } catch {
-    return []
-  }
+const FACTORY_META: Record<string, { name: string; icon: string; schedule: string; description: string }> = {
+  b: { name: 'Digital Products', icon: '💰', schedule: '06:00 UTC', description: 'Generuje trendy digitální produkty + PDF, auto-publish na Gumroad' },
+  a: { name: 'Web Hunter',       icon: '🕸️', schedule: '07:00 UTC', description: 'Hledá CZ/SK firmy bez webu, generuje HTML návrhy, cold emaily' },
+  c: { name: 'YouTube',          icon: '🎬', schedule: '08:00 UTC', description: 'Generuje viral YT skripty + thumbnaily + metadata' },
+  d: { name: 'Data Products',    icon: '📊', schedule: '09:00 UTC', description: 'Scrape ARES — nové CZ/SK firmy z registru + AI analytická zpráva' },
+  e: { name: 'SEO Content',      icon: '📝', schedule: '10:00 UTC', description: 'Affiliate SEO články (nářadí/zahrada) — H1/H2, srovnání, FAQ, meta' },
+  f: { name: 'Leads API',        icon: '📦', schedule: '11:00 UTC', description: 'Balíček leadů z WebHunter k prodeji agenturám (CSV + README)' },
+}
+
+const COMMIT_KEYS: Record<string, string> = {
+  'Factory-B': 'b', 'Factory-A': 'a', 'Factory-C': 'c',
+  'Factory-D': 'd', 'Factory-E': 'e', 'Factory-F': 'f',
 }
 
 export async function GET() {
-  const [commits] = await Promise.all([getGithubCommits()])
+  const commits = await getGithubCommits()
 
-  // Parse factory runs from commit messages
   const factoryRuns: Record<string, { last_run: string; result: string }> = {}
   for (const commit of commits) {
     const msg: string = commit.commit.message
-    const ts: string = commit.commit.author.date
-    if (msg.includes('Factory-B') && !factoryRuns['b']) {
-      factoryRuns['b'] = { last_run: ts, result: msg.includes('Auto output') ? 'success' : 'unknown' }
+    const ts: string  = commit.commit.author.date
+    for (const [tag, key] of Object.entries(COMMIT_KEYS)) {
+      if (msg.includes(tag) && !factoryRuns[key]) {
+        factoryRuns[key] = { last_run: ts, result: msg.includes('Auto output') ? 'success' : 'unknown' }
+      }
     }
-    if (msg.includes('Factory-A') && !factoryRuns['a']) {
-      factoryRuns['a'] = { last_run: ts, result: 'success' }
-    }
-    if (msg.includes('Factory-C') && !factoryRuns['c']) {
-      factoryRuns['c'] = { last_run: ts, result: 'success' }
+  }
+
+  const factories: Record<string, any> = {}
+  for (const [key, meta] of Object.entries(FACTORY_META)) {
+    factories[key] = {
+      ...meta,
+      last_run:    factoryRuns[key]?.last_run    || null,
+      last_result: factoryRuns[key]?.result      || 'never',
+      running:     false,
     }
   }
 
   return NextResponse.json({
-    factories: {
-      b: {
-        name: 'Digital Products',
-        icon: '💰',
-        last_run: factoryRuns['b']?.last_run || null,
-        last_result: factoryRuns['b']?.result || 'never',
-        schedule: '08:00 CZ',
-        description: 'Generuje trendy digitální produkty + PDF',
-      },
-      a: {
-        name: 'Web Hunter',
-        icon: '🕸️',
-        last_run: factoryRuns['a']?.last_run || null,
-        last_result: factoryRuns['a']?.result || 'never',
-        schedule: '09:00 CZ',
-        description: 'Hledá CZ/SK firmy bez webu, píše cold emaily',
-      },
-      c: {
-        name: 'YouTube',
-        icon: '🎬',
-        last_run: factoryRuns['c']?.last_run || null,
-        last_result: factoryRuns['c']?.result || 'never',
-        schedule: '10:00 CZ',
-        description: 'Generuje viral YT skripty + metadata',
-      },
-    },
-    recent_commits: commits.slice(0, 5).map((c: any) => ({
+    factories,
+    recent_commits: commits.slice(0, 8).map((c: any) => ({
       message: c.commit.message,
-      date: c.commit.author.date,
-      sha: c.sha.slice(0, 7),
+      date:    c.commit.author.date,
+      sha:     c.sha.slice(0, 7),
     })),
   })
 }
