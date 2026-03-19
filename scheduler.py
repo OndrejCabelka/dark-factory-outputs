@@ -6,13 +6,20 @@ Schedule (UTC):
   06:00 → Factory B: Digital Products
   07:00 → Factory A: Web Hunter
   08:00 → Factory C: YouTube
+  09:00 → Factory D: Data Products (ARES)
+  10:00 → Factory E: SEO Content
+  11:00 → Factory F: Leads API
 
 HTTP API (port 8080):
-  POST /trigger/b    — run Factory B now
   POST /trigger/a    — run Factory A now
+  POST /trigger/b    — run Factory B now
   POST /trigger/c    — run Factory C now
+  POST /trigger/d    — run Factory D now
+  POST /trigger/e    — run Factory E now
+  POST /trigger/f    — run Factory F now
   GET  /status       — last run info
   GET  /health       — healthcheck
+  GET  /logs         — last N log lines
 """
 
 import os
@@ -55,6 +62,9 @@ factory_status = {
     "b": {"name": "Digital Products", "last_run": None, "last_result": "never", "running": False},
     "a": {"name": "Web Hunter",       "last_run": None, "last_result": "never", "running": False},
     "c": {"name": "YouTube",          "last_run": None, "last_result": "never", "running": False},
+    "d": {"name": "Data Products",    "last_run": None, "last_result": "never", "running": False},
+    "e": {"name": "SEO Content",      "last_run": None, "last_result": "never", "running": False},
+    "f": {"name": "Leads API",        "last_run": None, "last_result": "never", "running": False},
 }
 
 
@@ -153,6 +163,8 @@ def run_factory(key: str, factory_path: str, module_name: str):
         factory_status[key]["running"] = False
 
 
+# ── JOBS ──────────────────────────────────────────────────────────────────────
+
 def job_b():
     ok = run_factory("b", str(BASE_DIR / "01_Digital_Products" / "factory.py"), "factory_b")
     push_outputs_to_github("Factory-B")
@@ -174,6 +186,33 @@ def job_c():
     if ok:
         notify("Factory C hotovo ✅", "YouTube skripty připraveny → GitHub: _outputs/youtube/")
 
+def job_d():
+    ok = run_factory("d", str(BASE_DIR / "04_Data_Products" / "factory.py"), "factory_d")
+    push_outputs_to_github("Factory-D")
+    if ok:
+        out_dir = BASE_DIR / "_outputs" / "data_products"
+        csvs = sorted(out_dir.glob("*.csv"), key=lambda f: f.stat().st_mtime, reverse=True)
+        csv_name = csvs[0].name if csvs else "data"
+        notify("Factory D hotovo ✅", f"ARES data '{csv_name}' připravena → GitHub: _outputs/data_products/")
+
+def job_e():
+    ok = run_factory("e", str(BASE_DIR / "06_SEO_Content" / "factory.py"), "factory_e")
+    push_outputs_to_github("Factory-E")
+    if ok:
+        out_dir = BASE_DIR / "_outputs" / "seo_content"
+        articles = sorted(out_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
+        art_name = articles[0].name if articles else "článek"
+        notify("Factory E hotovo ✅", f"SEO článek '{art_name}' připraven → GitHub: _outputs/seo_content/")
+
+def job_f():
+    ok = run_factory("f", str(BASE_DIR / "07_Leads_API" / "factory.py"), "factory_f")
+    push_outputs_to_github("Factory-F")
+    if ok:
+        out_dir = BASE_DIR / "_outputs" / "leads_api"
+        csvs = sorted(out_dir.glob("*.csv"), key=lambda f: f.stat().st_mtime, reverse=True)
+        csv_name = csvs[0].name if csvs else "leads"
+        notify("Factory F hotovo ✅", f"Leads balíček '{csv_name}' připraven → GitHub: _outputs/leads_api/")
+
 
 # ── HTTP API ──────────────────────────────────────────────────────────────────
 
@@ -192,7 +231,10 @@ def start_api_server():
             allow_headers=["*"],
         )
 
-        job_map = {"b": job_b, "a": job_a, "c": job_c}
+        job_map = {
+            "a": job_a, "b": job_b, "c": job_c,
+            "d": job_d, "e": job_e, "f": job_f,
+        }
 
         @api.get("/health")
         def health():
@@ -204,16 +246,19 @@ def start_api_server():
                 "factories": factory_status,
                 "github_repo": GITHUB_REPO,
                 "next_jobs": {
-                    "08:00 CZ": "Factory B — Digital Products",
-                    "09:00 CZ": "Factory A — Web Hunter",
-                    "10:00 CZ": "Factory C — YouTube",
+                    "06:00 UTC": "Factory B — Digital Products",
+                    "07:00 UTC": "Factory A — Web Hunter",
+                    "08:00 UTC": "Factory C — YouTube",
+                    "09:00 UTC": "Factory D — Data Products (ARES)",
+                    "10:00 UTC": "Factory E — SEO Content",
+                    "11:00 UTC": "Factory F — Leads API",
                 }
             }
 
         @api.post("/trigger/{factory_key}")
         def trigger(factory_key: str):
             if factory_key not in job_map:
-                return {"error": f"Unknown factory '{factory_key}'. Use: a, b, c"}
+                return {"error": f"Unknown factory '{factory_key}'. Use: a, b, c, d, e, f"}
             if factory_status[factory_key]["running"]:
                 return {"status": "already_running", "factory": factory_key}
             threading.Thread(target=job_map[factory_key], daemon=True).start()
@@ -240,12 +285,16 @@ def main():
     schedule.every().day.at("06:00").do(job_b)
     schedule.every().day.at("07:00").do(job_a)
     schedule.every().day.at("08:00").do(job_c)
+    schedule.every().day.at("09:00").do(job_d)
+    schedule.every().day.at("10:00").do(job_e)
+    schedule.every().day.at("11:00").do(job_f)
 
-    log.info("╔══════════════════════════════════════╗")
-    log.info("║   DARK FACTORY — SCHEDULER ONLINE    ║")
-    log.info("╚══════════════════════════════════════╝")
+    log.info("╔══════════════════════════════════════════════╗")
+    log.info("║     DARK FACTORY — SCHEDULER ONLINE          ║")
+    log.info("║  6 Factories | Fully Autonomous | 24/7       ║")
+    log.info("╚══════════════════════════════════════════════╝")
     log.info(f"Platform: {'macOS' if IS_MAC else 'Linux/Railway'} | API port: {PORT}")
-    log.info("Schedule (CZ): 08:00→B | 09:00→A | 10:00→C")
+    log.info("Schedule (UTC): 06→B | 07→A | 08→C | 09→D | 10→E | 11→F")
 
     # Start HTTP API in background thread
     api_thread = threading.Thread(target=start_api_server, daemon=True)
@@ -253,7 +302,8 @@ def main():
 
     if os.getenv("RUN_ON_STARTUP", "false").lower() == "true":
         log.info("RUN_ON_STARTUP=true — spouštím všechny factories...")
-        job_b(); job_a(); job_c()
+        for job in [job_b, job_a, job_c, job_d, job_e, job_f]:
+            job()
 
     log.info("Čekám na první job...")
     while True:
