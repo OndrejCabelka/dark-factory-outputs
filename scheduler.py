@@ -208,7 +208,18 @@ def job_e():
     if ok:
         out_dir = BASE_DIR / "_outputs" / "seo_content"
         arts = sorted(out_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
-        notify("Factory E hotovo ✅", f"SEO článek '{arts[0].name if arts else '?'}' → _outputs/seo_content/")
+        art_name = arts[0].name if arts else "?"
+        # Auto-publish na GitHub Pages
+        try:
+            spec = importlib.util.spec_from_file_location("publish_seo", BASE_DIR / "publish_seo.py")
+            mod  = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            url = mod.main()
+            notify("Factory E + GitHub Pages ✅", f"Článek '{art_name}' live: {url}")
+            log.info(f"🌐 SEO published: {url}")
+        except Exception as e:
+            log.error(f"SEO publish failed: {e}")
+            notify("Factory E hotovo ✅", f"SEO článek '{art_name}' → _outputs/seo_content/ (publish selhal: {e})")
 
 def job_f():
     ok = run_factory("f", str(BASE_DIR / "07_Leads_API" / "factory.py"), "factory_f")
