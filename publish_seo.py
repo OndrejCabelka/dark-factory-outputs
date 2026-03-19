@@ -273,20 +273,31 @@ def publish_article(md_path: Path) -> str | None:
         return str(local)
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        repo_url = f"https://{GITHUB_TOKEN}@github.com/{GITHUB_REPO}.git"
+        # GitHub potřebuje formát username:token (ne jen token)
+        owner = GITHUB_REPO.split("/")[0]
+        repo_url = f"https://{owner}:{GITHUB_TOKEN}@github.com/{GITHUB_REPO}.git"
         tmp = Path(tmpdir)
 
-        try:
-            subprocess.run(
-                ["git", "clone", "--branch", GITHUB_PAGES_BRANCH, "--depth=1", repo_url, str(tmp)],
-                capture_output=True, check=True
+        # Zakáž interaktivní git prompty
+        git_env = os.environ.copy()
+        git_env["GIT_TERMINAL_PROMPT"] = "0"
+        git_env["GIT_ASKPASS"] = "/bin/echo"
+
+        def git(*args, **kwargs):
+            return subprocess.run(
+                ["git", "-c", "credential.helper="] + list(args),
+                cwd=tmp, capture_output=True, text=True, env=git_env, **kwargs
             )
-        except subprocess.CalledProcessError:
-            # Branch neexistuje — vytvoř
-            subprocess.run(["git", "clone", "--depth=1", repo_url, str(tmp)], capture_output=True, check=True)
-            subprocess.run(["git", "checkout", "--orphan", GITHUB_PAGES_BRANCH], cwd=tmp, capture_output=True)
-            subprocess.run(["git", "rm", "-rf", "."], cwd=tmp, capture_output=True)
-            # Vytvoř index.html
+
+        clone = git("clone", "--branch", GITHUB_PAGES_BRANCH, "--depth=1", repo_url, str(tmp))
+        if clone.returncode != 0:
+            # Branch neexistuje — klonuj main a vytvoř orphan gh-pages
+            subprocess.run(
+                ["git", "-c", "credential.helper=", "clone", "--depth=1", repo_url, str(tmp)],
+                capture_output=True, env=git_env
+            )
+            git("checkout", "--orphan", GITHUB_PAGES_BRANCH)
+            git("rm", "-rf", ".")
             (tmp / "index.html").write_text("<html><body><h1>Dark Factory SEO</h1></body></html>")
 
         # Ulož článek
@@ -298,17 +309,16 @@ def publish_article(md_path: Path) -> str | None:
         _update_sitemap(tmp)
 
         # Commit + push
-        subprocess.run(["git", "config", "user.email", "darkfactory@auto.run"], cwd=tmp)
-        subprocess.run(["git", "config", "user.name", "DarkFactory"], cwd=tmp)
-        subprocess.run(["git", "add", "-A"], cwd=tmp)
-        result = subprocess.run(
-            ["git", "commit", "-m", f"[SEO] Publish: {title[:60]}"],
-            cwd=tmp, capture_output=True, text=True
-        )
-        if "nothing to commit" in result.stdout:
+        git("config", "user.email", "darkfactory@auto.run")
+        git("config", "user.name", "DarkFactory")
+        git("add", "-A")
+        commit = git("commit", "-m", f"[SEO] Publish: {title[:60]}")
+        if "nothing to commit" in commit.stdout:
             print(f"ℹ️  Článek již publikován: {canonical}")
             return canonical
-        subprocess.run(["git", "push", repo_url, GITHUB_PAGES_BRANCH], cwd=tmp, capture_output=True, check=True)
+        push = git("push", "-f", repo_url, f"HEAD:{GITHUB_PAGES_BRANCH}")
+        if push.returncode != 0:
+            raise RuntimeError(f"git push failed: {push.stderr[:300]}")
         print(f"✅ Publikováno: {canonical}")
         return canonical
 
