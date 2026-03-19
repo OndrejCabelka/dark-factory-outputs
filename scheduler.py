@@ -1,25 +1,17 @@
 """
 DARK FACTORY — Autonomous Scheduler + HTTP API
-Runs factories on schedule, exposes HTTP trigger endpoints.
 
-Schedule (UTC):
-  06:00 → Factory B: Digital Products
-  07:00 → Factory A: Web Hunter
-  08:00 → Factory C: YouTube
-  09:00 → Factory D: Data Products (ARES)
-  10:00 → Factory E: SEO Content
-  11:00 → Factory F: Leads API
+Modes (env var):
+  CONTINUOUS_LOOP=true  → běží A→B→C→D→E→F→A→B→... dokola bez zastavení
+                          LOOP_DELAY_MINUTES=60 (prodleva mezi cykly, default 60)
+  RUN_ON_STARTUP=true   → jednorázově spustí všechny factories při startu
+  (výchozí)             → klasický schedule: 06→B | 07→A | 08→C | 09→D | 10→E | 11→F
 
 HTTP API (port 8080):
-  POST /trigger/a    — run Factory A now
-  POST /trigger/b    — run Factory B now
-  POST /trigger/c    — run Factory C now
-  POST /trigger/d    — run Factory D now
-  POST /trigger/e    — run Factory E now
-  POST /trigger/f    — run Factory F now
-  GET  /status       — last run info
-  GET  /health       — healthcheck
-  GET  /logs         — last N log lines
+  POST /trigger/{a-f}  — spustí factory ihned
+  GET  /status         — stav všech factories
+  GET  /health         — healthcheck
+  GET  /logs           — posledních N řádků logu
 """
 
 import os
@@ -51,16 +43,20 @@ logging.basicConfig(
 )
 log = logging.getLogger("DarkFactory")
 
-GITHUB_TOKEN = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN", "")
-GITHUB_REPO  = os.getenv("GITHUB_REPO", "")
-NOTIFY_PHONE = os.getenv("NOTIFY_PHONE", os.getenv("GMAIL_ADDRESS", ""))
-IS_MAC       = platform.system() == "Darwin"
-PORT         = int(os.getenv("PORT", "8080"))
+GITHUB_TOKEN  = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN", "")
+GITHUB_REPO   = os.getenv("GITHUB_REPO", "")
+NOTIFY_PHONE  = os.getenv("NOTIFY_PHONE", os.getenv("GMAIL_ADDRESS", ""))
+IS_MAC        = platform.system() == "Darwin"
+PORT          = int(os.getenv("PORT", "8080"))
+CONTINUOUS    = os.getenv("CONTINUOUS_LOOP", "false").lower() == "true"
+LOOP_DELAY    = int(os.getenv("LOOP_DELAY_MINUTES", "60"))  # pauza mezi cykly
 
-# Track status of each factory
+# Globální čítač cyklů
+loop_cycle = 0
+
 factory_status = {
-    "b": {"name": "Digital Products", "last_run": None, "last_result": "never", "running": False},
     "a": {"name": "Web Hunter",       "last_run": None, "last_result": "never", "running": False},
+    "b": {"name": "Digital Products", "last_run": None, "last_result": "never", "running": False},
     "c": {"name": "YouTube",          "last_run": None, "last_result": "never", "running": False},
     "d": {"name": "Data Products",    "last_run": None, "last_result": "never", "running": False},
     "e": {"name": "SEO Content",      "last_run": None, "last_result": "never", "running": False},
@@ -71,7 +67,7 @@ factory_status = {
 # ── NOTIFICATIONS ─────────────────────────────────────────────────────────────
 
 def send_imessage(message: str):
-    if not IS_MAC:
+    if not IS_MAC or not NOTIFY_PHONE:
         return
     try:
         script = f'tell application "Messages" to send "{message}" to participant "{NOTIFY_PHONE}" of (1st account whose service type = iMessage)'
@@ -165,11 +161,16 @@ def run_factory(key: str, factory_path: str, module_name: str):
 
 # ── JOBS ──────────────────────────────────────────────────────────────────────
 
+def job_a():
+    ok = run_factory("a", str(BASE_DIR / "05_Web_Hunter" / "factory.py"), "factory_a")
+    push_outputs_to_github("Factory-A")
+    if ok:
+        notify("Factory A hotovo ✅", "Web Hunter leady připraveny → _outputs/web_hunter/")
+
 def job_b():
     ok = run_factory("b", str(BASE_DIR / "01_Digital_Products" / "factory.py"), "factory_b")
     push_outputs_to_github("Factory-B")
     if ok:
-        # Auto-publish to Gumroad if product ID is configured
         product_id = os.getenv("GUMROAD_PRODUCT_ID", "").strip()
         if product_id:
             try:
@@ -178,29 +179,20 @@ def job_b():
                 spec.loader.exec_module(mod)
                 url  = mod.publish()
                 notify("Factory B + Gumroad ✅", f"Produkt live: {url}")
-                log.info(f"💰 Gumroad publish: {url}")
             except Exception as e:
                 log.error(f"Gumroad publish failed: {e}")
-                pdf_dir = BASE_DIR / "_outputs" / "digital_products"
-                pdfs = sorted(pdf_dir.glob("*.pdf"), key=lambda f: f.stat().st_mtime, reverse=True)
-                notify("Factory B hotovo ✅", f"PDF ready: {pdfs[0].name if pdfs else '?'}. Gumroad chyba: {e}")
+                notify("Factory B hotovo ✅", f"PDF ready, Gumroad chyba: {e}")
         else:
             pdf_dir = BASE_DIR / "_outputs" / "digital_products"
             pdfs = sorted(pdf_dir.glob("*.pdf"), key=lambda f: f.stat().st_mtime, reverse=True)
-            pdf_name = pdfs[0].name if pdfs else "produkt"
-            notify("Factory B hotovo ✅", f"'{pdf_name}' ready. Nastav GUMROAD_PRODUCT_ID pro autopublish.")
+            notify("Factory B hotovo ✅", f"PDF: {pdfs[0].name if pdfs else '?'}. Nastav GUMROAD_PRODUCT_ID.")
 
-def job_a():
-    ok = run_factory("a", str(BASE_DIR / "05_Web_Hunter" / "factory.py"), "factory_a")
-    push_outputs_to_github("Factory-A")
-    if ok:
-        notify("Factory A hotovo ✅", "Web Hunter leady připraveny → GitHub: _outputs/web_hunter/")
 
 def job_c():
     ok = run_factory("c", str(BASE_DIR / "02_Faceless_YT" / "factory.py"), "factory_c")
     push_outputs_to_github("Factory-C")
     if ok:
-        notify("Factory C hotovo ✅", "YouTube skripty připraveny → GitHub: _outputs/youtube/")
+        notify("Factory C hotovo ✅", "YouTube skripty připraveny → _outputs/youtube/")
 
 def job_d():
     ok = run_factory("d", str(BASE_DIR / "04_Data_Products" / "factory.py"), "factory_d")
@@ -208,17 +200,15 @@ def job_d():
     if ok:
         out_dir = BASE_DIR / "_outputs" / "data_products"
         csvs = sorted(out_dir.glob("*.csv"), key=lambda f: f.stat().st_mtime, reverse=True)
-        csv_name = csvs[0].name if csvs else "data"
-        notify("Factory D hotovo ✅", f"ARES data '{csv_name}' připravena → GitHub: _outputs/data_products/")
+        notify("Factory D hotovo ✅", f"ARES data '{csvs[0].name if csvs else '?'}' → _outputs/data_products/")
 
 def job_e():
     ok = run_factory("e", str(BASE_DIR / "06_SEO_Content" / "factory.py"), "factory_e")
     push_outputs_to_github("Factory-E")
     if ok:
         out_dir = BASE_DIR / "_outputs" / "seo_content"
-        articles = sorted(out_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
-        art_name = articles[0].name if articles else "článek"
-        notify("Factory E hotovo ✅", f"SEO článek '{art_name}' připraven → GitHub: _outputs/seo_content/")
+        arts = sorted(out_dir.glob("*.md"), key=lambda f: f.stat().st_mtime, reverse=True)
+        notify("Factory E hotovo ✅", f"SEO článek '{arts[0].name if arts else '?'}' → _outputs/seo_content/")
 
 def job_f():
     ok = run_factory("f", str(BASE_DIR / "07_Leads_API" / "factory.py"), "factory_f")
@@ -226,31 +216,58 @@ def job_f():
     if ok:
         out_dir = BASE_DIR / "_outputs" / "leads_api"
         csvs = sorted(out_dir.glob("*.csv"), key=lambda f: f.stat().st_mtime, reverse=True)
-        csv_name = csvs[0].name if csvs else "leads"
-        notify("Factory F hotovo ✅", f"Leads balíček '{csv_name}' připraven → GitHub: _outputs/leads_api/")
+        notify("Factory F hotovo ✅", f"Leads balíček '{csvs[0].name if csvs else '?'}' → _outputs/leads_api/")
+
+
+# ── CONTINUOUS LOOP ───────────────────────────────────────────────────────────
+# Pořadí: A → B → C → D → E → F → (pauza LOOP_DELAY_MINUTES) → A → ...
+
+LOOP_ORDER = [
+    ("a", job_a),
+    ("b", job_b),
+    ("c", job_c),
+    ("d", job_d),
+    ("e", job_e),
+    ("f", job_f),
+]
+
+def run_continuous_loop():
+    global loop_cycle
+    log.info(f"🔄 CONTINUOUS LOOP MODE — pořadí: A→B→C→D→E→F, pauza {LOOP_DELAY}min mezi cykly")
+    while True:
+        loop_cycle += 1
+        log.info(f"━━━━━━━━━━ CYKLUS #{loop_cycle} START ━━━━━━━━━━")
+        notify(f"Cyklus #{loop_cycle} startuje 🔄", "Spouštím A→B→C→D→E→F")
+        results = {}
+        for key, job_fn in LOOP_ORDER:
+            log.info(f"[Cyklus #{loop_cycle}] Spouštím Factory {key.upper()}...")
+            try:
+                job_fn()
+                results[key] = "✅"
+            except Exception as e:
+                results[key] = f"❌ {e}"
+                log.error(f"[Cyklus #{loop_cycle}] Factory {key.upper()} selhala: {e}")
+
+        summary = " | ".join(f"{k.upper()}:{v}" for k, v in results.items())
+        log.info(f"━━━━━━━━━━ CYKLUS #{loop_cycle} HOTOV ━━━━━━━━━━")
+        log.info(f"Výsledky: {summary}")
+        notify(f"Cyklus #{loop_cycle} hotov ✅", f"{summary}\nDalší cyklus za {LOOP_DELAY} min.")
+        log.info(f"💤 Čekám {LOOP_DELAY} minut před dalším cyklem...")
+        time.sleep(LOOP_DELAY * 60)
 
 
 # ── HTTP API ──────────────────────────────────────────────────────────────────
 
 def start_api_server():
-    """Run FastAPI in a background thread so scheduler keeps running."""
     try:
         from fastapi import FastAPI
         from fastapi.middleware.cors import CORSMiddleware
         import uvicorn
 
         api = FastAPI(title="Dark Factory API")
-        api.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
+        api.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-        job_map = {
-            "a": job_a, "b": job_b, "c": job_c,
-            "d": job_d, "e": job_e, "f": job_f,
-        }
+        job_map = {"a": job_a, "b": job_b, "c": job_c, "d": job_d, "e": job_e, "f": job_f}
 
         @api.get("/health")
         def health():
@@ -258,23 +275,19 @@ def start_api_server():
 
         @api.get("/status")
         def status():
+            mode = "continuous_loop" if CONTINUOUS else ("run_on_startup" if os.getenv("RUN_ON_STARTUP","false").lower()=="true" else "scheduled")
             return {
+                "mode": mode,
+                "loop_cycle": loop_cycle,
+                "loop_delay_minutes": LOOP_DELAY,
                 "factories": factory_status,
-                "github_repo": GITHUB_REPO,
-                "next_jobs": {
-                    "06:00 UTC": "Factory B — Digital Products",
-                    "07:00 UTC": "Factory A — Web Hunter",
-                    "08:00 UTC": "Factory C — YouTube",
-                    "09:00 UTC": "Factory D — Data Products (ARES)",
-                    "10:00 UTC": "Factory E — SEO Content",
-                    "11:00 UTC": "Factory F — Leads API",
-                }
+                "loop_order": [k for k, _ in LOOP_ORDER],
             }
 
         @api.post("/trigger/{factory_key}")
         def trigger(factory_key: str):
             if factory_key not in job_map:
-                return {"error": f"Unknown factory '{factory_key}'. Use: a, b, c, d, e, f"}
+                return {"error": f"Unknown factory '{factory_key}'. Use: a-f"}
             if factory_status[factory_key]["running"]:
                 return {"status": "already_running", "factory": factory_key}
             threading.Thread(target=job_map[factory_key], daemon=True).start()
@@ -295,33 +308,42 @@ def start_api_server():
         log.error(f"API server failed: {e}")
 
 
-# ── SCHEDULE + MAIN ───────────────────────────────────────────────────────────
+# ── MAIN ──────────────────────────────────────────────────────────────────────
 
 def main():
-    schedule.every().day.at("06:00").do(job_b)
-    schedule.every().day.at("07:00").do(job_a)
-    schedule.every().day.at("08:00").do(job_c)
-    schedule.every().day.at("09:00").do(job_d)
-    schedule.every().day.at("10:00").do(job_e)
-    schedule.every().day.at("11:00").do(job_f)
-
     log.info("╔══════════════════════════════════════════════╗")
     log.info("║     DARK FACTORY — SCHEDULER ONLINE          ║")
     log.info("║  6 Factories | Fully Autonomous | 24/7       ║")
     log.info("╚══════════════════════════════════════════════╝")
-    log.info(f"Platform: {'macOS' if IS_MAC else 'Linux/Railway'} | API port: {PORT}")
-    log.info("Schedule (UTC): 06→B | 07→A | 08→C | 09→D | 10→E | 11→F")
+    log.info(f"Platform: {'macOS' if IS_MAC else 'Linux/Railway'} | Port: {PORT}")
 
-    # Start HTTP API in background thread
     api_thread = threading.Thread(target=start_api_server, daemon=True)
     api_thread.start()
 
-    if os.getenv("RUN_ON_STARTUP", "false").lower() == "true":
-        log.info("RUN_ON_STARTUP=true — spouštím všechny factories...")
-        for job in [job_b, job_a, job_c, job_d, job_e, job_f]:
-            job()
+    if CONTINUOUS:
+        log.info(f"🔄 Mód: CONTINUOUS LOOP (A→B→C→D→E→F→A..., pauza {LOOP_DELAY}min)")
+        run_continuous_loop()  # blokuje navždy
 
-    log.info("Čekám na první job...")
+    elif os.getenv("RUN_ON_STARTUP", "false").lower() == "true":
+        log.info("🚀 Mód: RUN_ON_STARTUP — jednorázový průchod")
+        for _, job_fn in LOOP_ORDER:
+            job_fn()
+        log.info("✅ RUN_ON_STARTUP hotovo. Přepínám na scheduled mód.")
+        _run_scheduled()
+
+    else:
+        log.info("📅 Mód: SCHEDULED (UTC): 07→A | 06→B | 08→C | 09→D | 10→E | 11→F")
+        _run_scheduled()
+
+
+def _run_scheduled():
+    schedule.every().day.at("07:00").do(job_a)
+    schedule.every().day.at("06:00").do(job_b)
+    schedule.every().day.at("08:00").do(job_c)
+    schedule.every().day.at("09:00").do(job_d)
+    schedule.every().day.at("10:00").do(job_e)
+    schedule.every().day.at("11:00").do(job_f)
+    log.info("⏰ Schedule aktivní. Čekám na joby...")
     while True:
         schedule.run_pending()
         time.sleep(30)
