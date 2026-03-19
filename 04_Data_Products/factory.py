@@ -37,45 +37,59 @@ TARGET_NACE = {
 
 
 def fetch_ares_new_companies(days_back: int = 7) -> list[dict]:
-    """Stáhne nové firmy z ARES zaregistrované za posledních N dní."""
-    date_from = (datetime.now() - timedelta(days=days_back)).strftime("%Y-%m-%d")
-    date_to = datetime.now().strftime("%Y-%m-%d")
+    """Stáhne firmy z ARES podle oborových klíčových slov."""
+    cutoff = (datetime.now() - timedelta(days=days_back * 10)).strftime("%Y-%m-%d")  # wider window
+    url = "https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/vyhledat"
     results = []
 
-    for nace_code, obor in TARGET_NACE.items():
+    # Search by business name keywords — only reliable method on this API
+    KEYWORDS = [
+        ("instalatér", "Instalatérství"), ("klempíř", "Klempířství"),
+        ("elektrikář", "Elektroinstalace"), ("elektro", "Elektroinstalace"),
+        ("tesař", "Tesařství"), ("truhlář", "Truhlářství"),
+        ("malíř", "Malířství"), ("zámečník", "Zámečnictví"),
+        ("topenář", "Topenářství"), ("podlahář", "Podlahářství"),
+        ("sklenář", "Sklenářství"), ("stavby", "Stavebnictví"),
+        ("rekonstrukce", "Rekonstrukce"), ("montáž", "Montáž"),
+    ]
+
+    for keyword, obor in KEYWORDS:
         try:
-            url = "https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/vyhledat"
             payload = {
-                "datumZapisuOd": date_from,
-                "datumZapisuDo": date_to,
-                "nace": [nace_code],
-                "start": 0,
                 "pocet": 50,
+                "obchodniJmeno": keyword,
             }
-            r = requests.post(url, json=payload, timeout=15)
+            r = requests.post(url, json=payload,
+                              headers={"Content-Type": "application/json"}, timeout=15)
             if r.status_code != 200:
                 continue
             data = r.json()
             firmy = data.get("ekonomickeSubjekty", [])
+            # Keep only firms founded recently
             for f in firmy:
-                results.append({
-                    "ico": f.get("ico", ""),
-                    "nazev": f.get("obchodniJmeno", ""),
-                    "obor": obor,
-                    "nace": nace_code,
-                    "datum_zapisu": f.get("datumZapisu", ""),
-                    "sidlo": f.get("sidlo", {}).get("textovaAdresa", ""),
-                    "mesto": f.get("sidlo", {}).get("nazevObce", ""),
-                    "psc": f.get("sidlo", {}).get("psc", ""),
-                })
-            print(f"  ARES [{nace_code}] {obor}: {len(firmy)} firem")
+                datum = f.get("datumVzniku", "")
+                if datum and datum >= cutoff:
+                    sidlo = f.get("sidlo", {})
+                    results.append({
+                        "ico":           f.get("ico", ""),
+                        "nazev":         f.get("obchodniJmeno", ""),
+                        "obor":          obor,
+                        "keyword":       keyword,
+                        "datum_vzniku":  datum,
+                        "sidlo":         sidlo.get("textovaAdresa", ""),
+                        "mesto":         sidlo.get("nazevObce", ""),
+                        "kraj":          sidlo.get("nazevKraje", ""),
+                        "psc":           str(sidlo.get("psc", "")),
+                    })
+            new = sum(1 for f in firmy if f.get("datumVzniku","") >= cutoff)
+            print(f"  [{keyword}]: {data.get('pocetCelkem',0)} celkem, {new} nových")
         except Exception as e:
-            print(f"  ARES [{nace_code}] chyba: {e}")
+            print(f"  [{keyword}] chyba: {e}")
 
     # Deduplikace podle IČO
     seen = set()
     unique = []
-    for f in results:
+    for f in sorted(results, key=lambda x: x["datum_vzniku"], reverse=True):
         if f["ico"] and f["ico"] not in seen:
             seen.add(f["ico"])
             unique.append(f)
@@ -163,9 +177,13 @@ def factory_d():
     print(f"  → {csv_path.name}")
 
     print("\n🤖 Generuji AI report...")
-    report_path = generate_report(companies, date_str)
-    if report_path:
-        print(f"  → {report_path.name}")
+    try:
+        report_path = generate_report(companies, date_str)
+        if report_path:
+            print(f"  → {report_path.name}")
+    except Exception as e:
+        print(f"  ⚠️  AI report přeskočen: {e}")
+        report_path = None
 
     # Metadata soubor
     meta = {

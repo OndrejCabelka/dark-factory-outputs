@@ -138,7 +138,8 @@ def factory_e():
     print("=" * 50)
 
     if not ANTHROPIC_API_KEY:
-        print("❌ Chybí ANTHROPIC_API_KEY")
+        print("❌ Chybí ANTHROPIC_API_KEY — nastav v _config/.env")
+        print("   👉 Vygeneruj nový klíč: https://console.anthropic.com/settings/keys")
         return False
 
     article_spec, slug, done_file, done = get_next_article()

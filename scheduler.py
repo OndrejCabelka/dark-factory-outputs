@@ -169,10 +169,26 @@ def job_b():
     ok = run_factory("b", str(BASE_DIR / "01_Digital_Products" / "factory.py"), "factory_b")
     push_outputs_to_github("Factory-B")
     if ok:
-        pdf_dir = BASE_DIR / "_outputs" / "digital_products"
-        pdfs = sorted(pdf_dir.glob("*.pdf"), key=lambda f: f.stat().st_mtime, reverse=True)
-        pdf_name = pdfs[0].name if pdfs else "produkt"
-        notify("Factory B hotovo ✅", f"'{pdf_name}' připraven k publikaci na Gumroad.")
+        # Auto-publish to Gumroad if product ID is configured
+        product_id = os.getenv("GUMROAD_PRODUCT_ID", "").strip()
+        if product_id:
+            try:
+                spec = importlib.util.spec_from_file_location("gumroad_pub", BASE_DIR / "publish_gumroad.py")
+                mod  = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                url  = mod.publish()
+                notify("Factory B + Gumroad ✅", f"Produkt live: {url}")
+                log.info(f"💰 Gumroad publish: {url}")
+            except Exception as e:
+                log.error(f"Gumroad publish failed: {e}")
+                pdf_dir = BASE_DIR / "_outputs" / "digital_products"
+                pdfs = sorted(pdf_dir.glob("*.pdf"), key=lambda f: f.stat().st_mtime, reverse=True)
+                notify("Factory B hotovo ✅", f"PDF ready: {pdfs[0].name if pdfs else '?'}. Gumroad chyba: {e}")
+        else:
+            pdf_dir = BASE_DIR / "_outputs" / "digital_products"
+            pdfs = sorted(pdf_dir.glob("*.pdf"), key=lambda f: f.stat().st_mtime, reverse=True)
+            pdf_name = pdfs[0].name if pdfs else "produkt"
+            notify("Factory B hotovo ✅", f"'{pdf_name}' ready. Nastav GUMROAD_PRODUCT_ID pro autopublish.")
 
 def job_a():
     ok = run_factory("a", str(BASE_DIR / "05_Web_Hunter" / "factory.py"), "factory_a")
