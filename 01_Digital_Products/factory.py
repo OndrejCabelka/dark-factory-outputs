@@ -1,15 +1,20 @@
 """
 DARK FACTORY — Factory B: Digital Products
-CrewAI crew that researches, creates and markets digital products.
+CrewAI crew: výzkum trhu → vytvoří produkt → napíše listing → vygeneruje PDF
+
+Výstupy (_outputs/digital_products/):
+  digital_product_{ts}.md   — marketing copy (listing)
+  product_content_{ts}.md   — obsah produktu (50 prompts apod.)
+  product_{ts}.pdf          — PDF produktu → uploaduje se na Gumroad
 """
 
 import os
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load env
 env_path = Path(__file__).parent.parent / "_config" / ".env"
 load_dotenv(dotenv_path=env_path)
 
@@ -20,118 +25,149 @@ OUTPUT_DIR = Path(__file__).parent.parent / "_outputs" / "digital_products"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
+# ── PDF GENERATOR ─────────────────────────────────────────────────────────────
+
+def _clean(s: str) -> str:
+    """Markdown → plain text, latin-1 safe pro fpdf2."""
+    s = re.sub(r"\*\*(.*?)\*\*", r"\1", s)
+    s = re.sub(r"\*(.*?)\*", r"\1", s)
+    s = re.sub(r"__(.*?)__", r"\1", s)
+    return s.encode("latin-1", errors="replace").decode("latin-1")
+
+
+def generate_pdf(title: str, content: str, output_path: Path) -> Path:
+    from fpdf import FPDF
+    title_safe = _clean(title)
+
+    class P(FPDF):
+        def header(self):
+            self.set_font("Helvetica", "B", 9)
+            self.set_text_color(120, 120, 120)
+            self.cell(0, 7, title_safe[:70], align="R")
+            self.ln(8)
+        def footer(self):
+            self.set_y(-13)
+            self.set_font("Helvetica", "I", 8)
+            self.set_text_color(150, 150, 150)
+            self.cell(0, 8, f"Page {self.page_no()}", align="C")
+
+    pdf = P(orientation="P", unit="mm", format="A4")
+    pdf.set_margins(15, 15, 15)
+    pdf.set_auto_page_break(True, 20)
+    pdf.add_page()
+
+    # Cover page
+    pdf.ln(20)
+    pdf.set_font("Helvetica", "B", 18)
+    pdf.set_text_color(20, 20, 20)
+    pdf.multi_cell(0, 10, title_safe, align="C")
+    pdf.ln(8)
+    pdf.set_font("Helvetica", "", 10)
+    pdf.set_text_color(120, 120, 120)
+    pdf.cell(0, 7, _clean(f"Dark Factory | {datetime.now().strftime('%B %Y')}"), align="C")
+    pdf.add_page()
+
+    for raw in content.split("\n"):
+        s = raw.rstrip()
+        try:
+            if s.startswith("# "):
+                pdf.ln(4); pdf.set_font("Helvetica", "B", 15); pdf.set_text_color(20, 20, 20)
+                pdf.multi_cell(0, 8, _clean(s[2:]))
+            elif s.startswith("## "):
+                pdf.ln(3); pdf.set_font("Helvetica", "B", 12); pdf.set_text_color(40, 40, 40)
+                pdf.multi_cell(0, 7, _clean(s[3:]))
+            elif s.startswith("### "):
+                pdf.ln(2); pdf.set_font("Helvetica", "B", 10); pdf.set_text_color(60, 60, 60)
+                pdf.multi_cell(0, 6, _clean(s[4:]))
+            elif s.startswith("---"):
+                pdf.ln(3); pdf.set_draw_color(200, 200, 200)
+                pdf.line(15, pdf.get_y(), 195, pdf.get_y()); pdf.ln(3)
+            elif s.strip() == "":
+                pdf.ln(2)
+            elif s.lstrip().startswith("- ") or s.lstrip().startswith("* "):
+                pdf.set_font("Helvetica", "", 10); pdf.set_text_color(50, 50, 50)
+                pdf.multi_cell(0, 5.5, "  - " + _clean(s.lstrip()[2:]))
+            elif re.match(r"^\s*\d+\.", s):
+                pdf.set_font("Helvetica", "", 10); pdf.set_text_color(50, 50, 50)
+                pdf.multi_cell(0, 5.5, "  " + _clean(s.strip()))
+            else:
+                pdf.set_font("Helvetica", "", 10); pdf.set_text_color(50, 50, 50)
+                pdf.multi_cell(0, 5.5, _clean(s))
+        except Exception:
+            pass  # přeskoč problematický řádek
+
+    pdf.output(str(output_path))
+    return output_path
+
+
+# ── AGENTS + TASKS ────────────────────────────────────────────────────────────
+
 def build_crew():
     search_tool = SerperDevTool()
     scrape_tool = ScrapeWebsiteTool()
 
-    # ── AGENTS ──────────────────────────────────────────────────────────────
-
     market_researcher = Agent(
         role="Digital Product Market Researcher",
-        goal=(
-            "Find the top 5 trending digital product niches right now with low competition "
-            "and high demand. Focus on Gumroad bestsellers, Etsy digital downloads, "
-            "and AI prompt marketplaces."
-        ),
-        backstory=(
-            "You are a sharp market analyst who lives on Gumroad, Etsy, and Product Hunt. "
-            "You spot trends before they peak and know exactly what digital buyers want to pay for. "
-            "You produce ranked, data-backed niche reports with zero fluff."
-        ),
+        goal="Find top 5 trending digital product niches with low competition and high demand on Gumroad/Etsy.",
+        backstory="Sharp market analyst who spots trends early. Data-backed, zero fluff.",
         tools=[search_tool, scrape_tool],
-        verbose=True,
-        allow_delegation=False,
+        verbose=True, allow_delegation=False,
         llm="anthropic/claude-sonnet-4-6",
     )
 
     product_creator = Agent(
         role="Digital Product Creator",
-        goal=(
-            "Create a complete, high-value digital product for the best niche identified. "
-            "The product must be ready to publish — full content, not an outline."
-        ),
-        backstory=(
-            "You are a prolific digital creator who has sold hundreds of products on Gumroad. "
-            "You write ebooks, prompt packs, and template sets that people actually buy and use. "
-            "You deliver complete, polished content — never placeholders."
-        ),
-        verbose=True,
-        allow_delegation=False,
+        goal="Create a complete, immediately publishable digital product — full content, zero placeholders.",
+        backstory="Prolific creator who has sold hundreds of products on Gumroad. Delivers actual content.",
+        verbose=True, allow_delegation=False,
         llm="anthropic/claude-sonnet-4-6",
     )
 
     copywriter = Agent(
         role="Marketing & Sales Copywriter",
-        goal=(
-            "Write a compelling product listing that converts browsers into buyers. "
-            "Deliver: title, 500-word description, bullet points, tags list, and pricing recommendation."
-        ),
-        backstory=(
-            "You are a direct-response copywriter who specialises in digital product listings. "
-            "You know what sells on Gumroad and Etsy. Your copy is benefit-driven, specific, "
-            "and built around buyer psychology. Every word earns its place."
-        ),
-        verbose=True,
-        allow_delegation=False,
+        goal="Write a compelling Gumroad/Etsy listing that converts: title, description, bullets, tags, price.",
+        backstory="Direct-response copywriter specialising in digital products. Benefit-driven, specific.",
+        verbose=True, allow_delegation=False,
         llm="anthropic/claude-sonnet-4-6",
     )
 
-    # ── TASKS ────────────────────────────────────────────────────────────────
-
     research_task = Task(
         description=(
-            "Search for the top 5 trending digital product niches right now. "
-            "Check Gumroad (gumroad.com/discover), Etsy digital downloads bestsellers, "
-            "and AI prompt marketplaces. "
-            "For each niche provide: niche name, estimated demand level, competition level, "
-            "average price point, why it's trending now, example products already selling well. "
-            "Rank them #1–5 with #1 being the best opportunity. "
-            "Output a clean markdown report."
+            "Search top 5 trending digital product niches now. "
+            "Check gumroad.com/discover, Etsy digital downloads, AI prompt marketplaces. "
+            "For each: niche name, demand, competition, avg price, why trending, example products. "
+            "Rank #1–5, #1 = best opportunity. Clean markdown output."
         ),
-        expected_output=(
-            "Ranked markdown list of 5 digital product niches with full analysis for each. "
-            "Must include: rank, niche name, demand, competition, avg price, trend reason, examples."
-        ),
+        expected_output="Ranked markdown list of 5 niches with full analysis.",
         agent=market_researcher,
     )
 
     creation_task = Task(
         description=(
-            "Take the #1 ranked niche from the research report and create a COMPLETE digital product for it. "
-            "Do NOT write an outline or a plan — write the actual full content. "
-            "If it's a prompt pack: write 20–30 ready-to-use prompts with instructions. "
-            "If it's an ebook: write all chapters with full text (min 2000 words total). "
-            "If it's a template set: create 5–10 complete, usable templates. "
-            "The product must be immediately publishable — zero placeholders allowed."
+            "Take #1 niche from research. Create a COMPLETE digital product — full content only, no outlines. "
+            "Prompt pack: write 25-30 ready-to-use prompts with usage instructions. "
+            "Ebook: write all chapters, min 2000 words total. "
+            "Templates: create 5-10 complete, usable templates. "
+            "Zero placeholders. Immediately publishable."
         ),
-        expected_output=(
-            "Complete, publish-ready digital product content in markdown format. "
-            "Full text, no outlines, no 'add content here' placeholders."
-        ),
+        expected_output="Complete publish-ready product content in markdown. Full text, no outlines.",
         agent=product_creator,
         context=[research_task],
     )
 
     marketing_task = Task(
         description=(
-            "Write the full Gumroad/Etsy product listing for the product just created. "
-            "Deliver exactly: "
-            "1) TITLE — one punchy, keyword-rich title (max 80 chars) "
-            "2) DESCRIPTION — 500-word sales copy, benefit-driven, no fluff "
-            "3) BULLET POINTS — 6 key benefits as short bullets "
-            "4) TAGS — 15 relevant tags separated by commas "
-            "5) PRICING RECOMMENDATION — suggested price with brief reasoning "
-            "Format everything clearly under these 5 headings."
+            "Write full Gumroad/Etsy listing for the product. Deliver exactly under these headings: "
+            "TITLE (max 80 chars, punchy, keyword-rich) | "
+            "DESCRIPTION (500 words, benefit-driven) | "
+            "BULLET POINTS (6 key benefits) | "
+            "TAGS (15 tags comma-separated) | "
+            "PRICING RECOMMENDATION (price + brief reasoning)"
         ),
-        expected_output=(
-            "Complete Gumroad listing under 5 clear headings: "
-            "TITLE, DESCRIPTION, BULLET POINTS, TAGS, PRICING RECOMMENDATION."
-        ),
+        expected_output="Complete listing under 5 clear headings: TITLE, DESCRIPTION, BULLET POINTS, TAGS, PRICING.",
         agent=copywriter,
         context=[research_task, creation_task],
     )
-
-    # ── CREW ─────────────────────────────────────────────────────────────────
 
     crew = Crew(
         agents=[market_researcher, product_creator, copywriter],
@@ -139,26 +175,64 @@ def build_crew():
         process=Process.sequential,
         verbose=True,
     )
+    return crew, creation_task, marketing_task
 
-    return crew
 
+# ── MAIN ──────────────────────────────────────────────────────────────────────
 
 def main():
     print("\n🏭 FACTORY B — DIGITAL PRODUCTS — STARTING\n")
-    crew = build_crew()
-    result = crew.kickoff()
+    crew, creation_task, marketing_task = build_crew()
+    crew.kickoff()
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = OUTPUT_DIR / f"digital_product_{timestamp}.md"
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write(f"# Digital Product Output\n")
-        f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-        f.write("---\n\n")
-        f.write(str(result))
+    # Zachyť výstupy jednotlivých tasků
+    product_content = getattr(getattr(creation_task, "output", None), "raw", "") or ""
+    marketing_copy  = getattr(getattr(marketing_task, "output", None), "raw", "") or ""
 
-    print(f"\n✅ Output saved to: {output_file}")
-    return str(result)
+    # Extrahuj title z marketing copy
+    product_title = "Digital Product"
+    lines = marketing_copy.split("\n")
+    in_title_section = False
+    for line in lines:
+        stripped = line.strip()
+        if re.search(r"^#+\s*TITLE", stripped, re.I) or stripped.upper() == "TITLE":
+            in_title_section = True
+            continue
+        if in_title_section and stripped and not stripped.startswith("#"):
+            candidate = stripped.lstrip("*_").rstrip("*_").strip()
+            if 5 < len(candidate) < 120:
+                product_title = candidate
+                break
+        if in_title_section and stripped.startswith("#"):
+            break  # další sekce
+
+    # Ulož marketing copy
+    mkt_file = OUTPUT_DIR / f"digital_product_{ts}.md"
+    with open(mkt_file, "w", encoding="utf-8") as f:
+        f.write(f"# Digital Product Output\nGenerated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n---\n\n")
+        f.write(marketing_copy)
+    print(f"✅ Marketing copy: {mkt_file.name}")
+
+    # Ulož obsah produktu + vygeneruj PDF
+    if product_content and len(product_content) > 200:
+        content_file = OUTPUT_DIR / f"product_content_{ts}.md"
+        with open(content_file, "w", encoding="utf-8") as f:
+            f.write(f"# {product_title}\n\n{product_content}")
+        print(f"✅ Product content: {content_file.name}")
+
+        try:
+            pdf_file = OUTPUT_DIR / f"product_{ts}.pdf"
+            generate_pdf(product_title, product_content, pdf_file)
+            size_kb = pdf_file.stat().st_size // 1024
+            print(f"✅ PDF: {pdf_file.name} ({size_kb} KB)")
+        except Exception as e:
+            print(f"⚠️  PDF failed: {e}")
+    else:
+        print("⚠️  Product content prázdný — PDF přeskočen. Zkontroluj CrewAI task output.")
+
+    return marketing_copy
 
 
 if __name__ == "__main__":

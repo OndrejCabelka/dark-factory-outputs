@@ -1,6 +1,11 @@
 """
 DARK FACTORY — Factory C: Faceless YouTube
-CrewAI crew that finds trending niches, writes full video scripts and complete metadata.
+CrewAI crew: trend research → full script → SEO metadata
+
+Výstupy (_outputs/youtube/):
+  youtube_research_{ts}.md  — analýza trendů a doporučení
+  youtube_script_{ts}.md    — kompletní video skript (hlavní výstup)
+  youtube_metadata_{ts}.md  — upload balíček (titulky, popis, tagy)
 """
 
 import os
@@ -21,135 +26,87 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 def build_crew():
     search_tool = SerperDevTool()
 
-    # ── AGENTS ──────────────────────────────────────────────────────────────
-
     trend_analyst = Agent(
         role="YouTube Trend & Niche Analyst",
         goal=(
             "Find the top 3 video topics right now with high CPM potential and relatively low competition. "
-            "Prioritise niches: finance, tech, business, AI, health, self-improvement. "
-            "For each topic: search volume signals, competitor view counts, CPM estimate, competition level."
+            "Prioritise niches: finance, tech, business, AI, health, self-improvement."
         ),
         backstory=(
-            "You are a data-obsessed YouTube strategist who has analysed thousands of channels. "
-            "You know which niches pay $15+ CPM and which are saturated. "
-            "You back every recommendation with real signals — not guesses. "
-            "You find the gap between high demand and low supply."
+            "Data-obsessed YouTube strategist. Knows which niches pay $15+ CPM and which are saturated. "
+            "Backs every recommendation with real signals — not guesses."
         ),
         tools=[search_tool],
-        verbose=True,
-        allow_delegation=False,
+        verbose=True, allow_delegation=False,
         llm="anthropic/claude-sonnet-4-6",
     )
 
     script_writer = Agent(
         role="Viral YouTube Script Writer",
         goal=(
-            "Write a complete 8-12 minute video script for the best topic found. "
-            "Every sentence must earn its place. Hook must stop the scroll in 3 seconds. "
-            "Structure: Hook → Intro → 5-8 main sections → CTA + Outro."
+            "Write a complete 8-12 minute video script. "
+            "Hook stops scroll in 3 seconds. Structure: Hook → Intro → 5-8 sections → CTA → Outro."
         ),
         backstory=(
-            "You are a YouTube script writer with 50M+ views across faceless channels. "
-            "You know that the hook is everything. You write like you talk — "
-            "conversational, direct, no filler, no 'in this video I will show you'. "
-            "You use pattern interrupts, open loops, and curiosity gaps naturally. "
-            "Your scripts make editors' jobs easy with clear section labels."
+            "YouTube script writer with 50M+ views across faceless channels. "
+            "Conversational, direct, no filler. Uses pattern interrupts and curiosity gaps naturally."
         ),
-        verbose=True,
-        allow_delegation=False,
+        verbose=True, allow_delegation=False,
         llm="anthropic/claude-sonnet-4-6",
     )
 
     seo_specialist = Agent(
         role="YouTube SEO & Metadata Expert",
         goal=(
-            "Maximise discoverability with a complete upload package: "
-            "3 title options, full SEO description (500+ words), 20 tags, "
-            "chapter timestamps, thumbnail brief, voiceover tone notes."
+            "Maximise discoverability: 3 title options, 500+ word description, "
+            "20 tags, chapter timestamps, thumbnail brief, voiceover notes."
         ),
         backstory=(
-            "You are a YouTube SEO specialist who has ranked hundreds of videos on page 1. "
-            "You know exactly how the algorithm reads titles, descriptions, and tags. "
-            "You write descriptions that serve both the algorithm and human readers. "
-            "Your thumbnail briefs are specific enough that any designer can execute them immediately."
+            "YouTube SEO specialist who has ranked hundreds of videos on page 1. "
+            "Writes descriptions that serve both algorithm and human readers."
         ),
-        verbose=True,
-        allow_delegation=False,
+        verbose=True, allow_delegation=False,
         llm="anthropic/claude-sonnet-4-6",
     )
 
-    # ── TASKS ────────────────────────────────────────────────────────────────
-
     research_task = Task(
         description=(
-            "Search for the top 3 YouTube video opportunities right now. "
-            "Use searches like: 'YouTube trending topics finance 2025', "
-            "'high CPM YouTube niches', 'low competition YouTube topics tech', "
-            "'viral YouTube video ideas business'. "
-            "For each of the 3 topics provide: "
-            "TOPIC NAME | NICHE | WHY TRENDING | CPM ESTIMATE ($) | COMPETITION (Low/Med/High) "
-            "| EXAMPLE COMPETING VIDEOS WITH VIEW COUNTS | UNIQUE ANGLE WE CAN TAKE. "
-            "Rank them #1–3. #1 = best opportunity right now."
+            "Search for top 3 YouTube video opportunities right now. "
+            "Focus: finance, tech, business, AI, health, self-improvement. "
+            "For each topic: TOPIC | NICHE | WHY TRENDING | CPM ESTIMATE ($) | COMPETITION | "
+            "EXAMPLE COMPETING VIDEOS WITH VIEW COUNTS | UNIQUE ANGLE. "
+            "Rank #1-3. #1 = best opportunity."
         ),
-        expected_output=(
-            "Ranked analysis of 3 YouTube video opportunities. "
-            "Each with: topic, niche, trend reason, CPM estimate, competition level, "
-            "competitor examples, unique angle. Clear #1 recommendation."
-        ),
+        expected_output="Ranked analysis of 3 YouTube opportunities with full data for each.",
         agent=trend_analyst,
     )
 
     script_task = Task(
         description=(
             "Write a COMPLETE 8-12 minute video script for the #1 ranked topic. "
-            "Use this exact structure: "
-            "[HOOK — 0:00-0:30] — grab attention immediately, start with the most shocking/interesting fact "
-            "[INTRO — 0:30-1:00] — brief setup, promise what viewer will learn "
-            "[SECTION 1] through [SECTION 5-8] — main content with smooth transitions "
-            "[CTA — near end] — subscribe, like, comment prompt woven in naturally "
-            "[OUTRO — last 30 sec] — wrap up, tease next video "
-            "Include approximate timestamps for each section. "
-            "Write full sentences — not bullet points. This is the actual script the voiceover artist reads. "
-            "Target length: 1400-1800 words (8-12 min at average speaking pace)."
+            "Structure: [HOOK 0:00-0:30] [INTRO 0:30-1:00] [SECTION 1-6] [CTA] [OUTRO] "
+            "Include timestamps. Write full sentences — this is the actual voiceover script. "
+            "Target: 1400-1800 words. Hook in first 5 lines must be outstanding."
         ),
-        expected_output=(
-            "Complete video script with section labels and timestamps. "
-            "Full sentences throughout — no bullet outlines. "
-            "1400-1800 words. Hook in first 5 lines must be outstanding."
-        ),
+        expected_output="Complete video script with timestamps and section labels. 1400-1800 words. Full sentences only.",
         agent=script_writer,
         context=[research_task],
     )
 
     metadata_task = Task(
         description=(
-            "Create the complete YouTube upload package for this video. Deliver exactly: "
-            "## TITLE OPTIONS (A/B/C) "
-            "Three title variations to A/B test. Each max 60 chars. Include main keyword. "
-            "## DESCRIPTION "
-            "500+ word SEO-optimised description. First 2 lines must hook viewer before 'Show more'. "
-            "Include: what the video covers, 3-5 relevant links as placeholders, timestamps, "
-            "subscribe CTA, keywords woven in naturally. "
-            "## TAGS "
-            "20 tags, mix of broad and specific, comma separated. "
-            "## CHAPTER TIMESTAMPS "
-            "Full chapter list matching the script sections, in 0:00 format. "
-            "## THUMBNAIL BRIEF "
-            "Describe the thumbnail image in detail: background colour, main visual element, "
-            "text overlay (max 4 words), facial expression if person shown, overall mood. "
-            "## VOICEOVER NOTES "
-            "Tone, pace, energy level, specific notes for each section."
+            "Create complete YouTube upload package. Deliver under these headings: "
+            "TITLE OPTIONS (A/B/C — 3 variations, max 60 chars each) | "
+            "DESCRIPTION (500+ words, SEO-optimised, hook in first 2 lines) | "
+            "TAGS (20 tags, broad + specific, comma-separated) | "
+            "CHAPTER TIMESTAMPS (matching script sections, 0:00 format) | "
+            "THUMBNAIL BRIEF (background, visual element, text overlay max 4 words, mood) | "
+            "VOICEOVER NOTES (tone, pace, energy per section)"
         ),
-        expected_output=(
-            "Complete upload package under 6 clear headings: "
-            "TITLE OPTIONS, DESCRIPTION, TAGS, CHAPTER TIMESTAMPS, THUMBNAIL BRIEF, VOICEOVER NOTES."
-        ),
+        expected_output="Complete upload package under 6 headings: TITLE OPTIONS, DESCRIPTION, TAGS, CHAPTERS, THUMBNAIL, VOICEOVER.",
         agent=seo_specialist,
         context=[research_task, script_task],
     )
-
-    # ── CREW ─────────────────────────────────────────────────────────────────
 
     crew = Crew(
         agents=[trend_analyst, script_writer, seo_specialist],
@@ -157,26 +114,52 @@ def build_crew():
         process=Process.sequential,
         verbose=True,
     )
-
-    return crew
+    return crew, research_task, script_task, metadata_task
 
 
 def main():
     print("\n🏭 FACTORY C — FACELESS YOUTUBE — STARTING\n")
-    crew = build_crew()
-    result = crew.kickoff()
+    crew, research_task, script_task, metadata_task = build_crew()
+    crew.kickoff()
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = OUTPUT_DIR / f"youtube_{timestamp}.md"
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write(f"# YouTube Factory Output\n")
-        f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-        f.write("---\n\n")
-        f.write(str(result))
+    # Zachyť výstupy všech 3 tasků
+    research_out = getattr(getattr(research_task, "output", None), "raw", "") or ""
+    script_out   = getattr(getattr(script_task,   "output", None), "raw", "") or ""
+    metadata_out = getattr(getattr(metadata_task, "output", None), "raw", "") or ""
 
-    print(f"\n✅ Output saved to: {output_file}")
-    return str(result)
+    # Ulož research
+    if research_out:
+        f = OUTPUT_DIR / f"youtube_research_{ts}.md"
+        f.write_text(f"# YouTube Trend Research\nGenerated: {datetime.now()}\n\n---\n\n{research_out}", encoding="utf-8")
+        print(f"✅ Research: {f.name}")
+
+    # Ulož skript (nejcennější output)
+    if script_out:
+        f = OUTPUT_DIR / f"youtube_script_{ts}.md"
+        f.write_text(f"# YouTube Script\nGenerated: {datetime.now()}\n\n---\n\n{script_out}", encoding="utf-8")
+        print(f"✅ Script: {f.name} ({len(script_out.split())} words)")
+    else:
+        print("⚠️  Script (Task 2) prázdný!")
+
+    # Ulož metadata
+    if metadata_out:
+        f = OUTPUT_DIR / f"youtube_metadata_{ts}.md"
+        f.write_text(f"# YouTube Upload Package\nGenerated: {datetime.now()}\n\n---\n\n{metadata_out}", encoding="utf-8")
+        print(f"✅ Metadata: {f.name}")
+
+    # Souhrnný soubor pro zpětnou kompatibilitu
+    combined = "\n\n---\n\n".join([
+        f"# RESEARCH\n\n{research_out}",
+        f"# SCRIPT\n\n{script_out}",
+        f"# METADATA\n\n{metadata_out}",
+    ])
+    f = OUTPUT_DIR / f"youtube_{ts}.md"
+    f.write_text(f"# YouTube Factory Output\nGenerated: {datetime.now()}\n\n{combined}", encoding="utf-8")
+    print(f"✅ Combined: {f.name}")
+
+    return script_out or metadata_out
 
 
 if __name__ == "__main__":
