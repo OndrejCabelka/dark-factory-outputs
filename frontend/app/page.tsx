@@ -357,7 +357,7 @@ export default function Dashboard() {
     (filterExt === 'all' || f.ext === filterExt) &&
     (filterFactory === 'all' || f.factoryKey === filterFactory)
   )
-  const allExts = [...new Set(allFiles.map(f => f.ext).filter(Boolean))]
+  const allExts = Array.from(new Set(allFiles.map(f => f.ext).filter(Boolean)))
 
   // Filter logs
   const filteredLogs = logSearch
