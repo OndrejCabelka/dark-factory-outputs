@@ -171,21 +171,21 @@ def job_b():
     ok = run_factory("b", str(BASE_DIR / "01_Digital_Products" / "factory.py"), "factory_b")
     push_outputs_to_github("Factory-B")
     if ok:
-        product_id = os.getenv("GUMROAD_PRODUCT_ID", "").strip()
-        if product_id:
+        ls_key = os.getenv("LEMONSQUEEZY_API_KEY", "").strip()
+        if ls_key:
             try:
-                spec = importlib.util.spec_from_file_location("gumroad_pub", BASE_DIR / "publish_gumroad.py")
+                spec = importlib.util.spec_from_file_location("ls_pub", BASE_DIR / "publish_lemonsqueezy.py")
                 mod  = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(mod)
                 url  = mod.publish()
-                notify("Factory B + Gumroad ✅", f"Produkt live: {url}")
+                notify("Factory B + LemonSqueezy ✅", f"Produkt live: {url}")
             except Exception as e:
-                log.error(f"Gumroad publish failed: {e}")
-                notify("Factory B hotovo ✅", f"PDF ready, Gumroad chyba: {e}")
+                log.error(f"LemonSqueezy publish failed: {e}")
+                notify("Factory B hotovo ✅", f"PDF ready, LS chyba: {e}")
         else:
             pdf_dir = BASE_DIR / "_outputs" / "digital_products"
             pdfs = sorted(pdf_dir.glob("*.pdf"), key=lambda f: f.stat().st_mtime, reverse=True)
-            notify("Factory B hotovo ✅", f"PDF: {pdfs[0].name if pdfs else '?'}. Nastav GUMROAD_PRODUCT_ID.")
+            notify("Factory B hotovo ✅", f"PDF: {pdfs[0].name if pdfs else '?'}. Nastav LEMONSQUEEZY_API_KEY.")
 
 
 def job_c():

@@ -1,186 +1,395 @@
 """
-DARK FACTORY — Factory A: Web Hunter
-CrewAI crew that finds CZ/SK businesses without websites and writes Czech outreach emails.
+DARK FACTORY — Factory A: Web Hunter v3
+Sub-agent architektura: Scout → Qualifier → EmailWriter
+
+Sub-agent 1 (Scout): Serper Maps + Google organic → reálné firmy z CZ/SK
+Sub-agent 2 (Qualifier): Filtruje kdo opravdu nemá web, deduplikuje
+Sub-agent 3 (EmailWriter): Claude napíše personalizované emaily + volací skripty
 """
 
-import os
-import csv
+import os, re, csv, time, json, requests
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
+import anthropic
 
-env_path = Path(__file__).parent.parent / "_config" / ".env"
+BASE_DIR = Path(__file__).parent.parent
+env_path = BASE_DIR / "_config" / ".env"
 load_dotenv(dotenv_path=env_path)
 
-from crewai import Agent, Task, Crew, Process
-from crewai_tools import SerperDevTool, ScrapeWebsiteTool
-
-OUTPUT_DIR = Path(__file__).parent.parent / "_outputs" / "web_hunter"
+OUTPUT_DIR = BASE_DIR / "_outputs" / "web_hunter"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+SERPER_API_KEY    = os.getenv("SERPER_API_KEY", "")
 
-def build_crew():
-    search_tool = SerperDevTool()
-    scrape_tool = ScrapeWebsiteTool()
+# Serper endpoints
+SERPER_MAPS_URL    = "https://google.serper.dev/maps"
+SERPER_SEARCH_URL  = "https://google.serper.dev/search"
 
-    # ── AGENTS ──────────────────────────────────────────────────────────────
+SERPER_HEADERS = {
+    "X-API-KEY":    SERPER_API_KEY,
+    "Content-Type": "application/json",
+}
 
-    hunter = Agent(
-        role="Obchodní průzkumník",
-        goal=(
-            "Najít 10 firem v ČR nebo SR které nemají web nebo mají zastaralý web (starší než 2010). "
-            "Zaměř se na: restaurace, řemeslníky, malé obchody, lokální služby. "
-            "Pro každou firmu sesbírej: název, lokalita, telefon, email (pokud dostupný), "
-            "URL webu nebo 'bez webu', stav webu."
-        ),
-        backstory=(
-            "Jsi zkušený obchodní průzkumník specializující se na český a slovenský trh. "
-            "Umíš rychle najít malé firmy, které digitálně zaostávají. "
-            "Prohledáváš firmy.cz, zlatestranky.cz, Google Maps a místní adresáře. "
-            "Výsledky strukturuješ přesně a kompletně."
-        ),
-        tools=[search_tool, scrape_tool],
-        verbose=True,
-        allow_delegation=False,
-        llm="anthropic/claude-sonnet-4-6",
+# ── SEARCH TARGETS ────────────────────────────────────────────────────────────
+# (obor, město) — živnostníci s vysokou pravděpodobností bez webu
+SEARCH_TARGETS = [
+    ("instalatér",     "Praha"),
+    ("elektrikář",     "Brno"),
+    ("malíř natěrač",  "Ostrava"),
+    ("klempíř",        "Plzeň"),
+    ("truhlář",        "Liberec"),
+    ("zedník",         "Olomouc"),
+    ("pokrývač",       "České Budějovice"),
+    ("instalatér",     "Brno"),
+    ("elektrikář",     "Praha"),
+    ("malíř natěrač",  "Plzeň"),
+    ("klempíř",        "Brno"),
+    ("tesař",          "Praha"),
+    ("obkladač",       "Brno"),
+    ("zahradník",      "Praha"),
+]
+
+SOCIAL_DOMAINS = {"facebook.com", "instagram.com", "linkedin.com", "youtube.com", "twitter.com", "tiktok.com"}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SUB-AGENT 1: SCOUT
+# Zodpovědnost: najdi reálné firmy přes Serper Maps + Google organic
+# Vstup: (obor, město) | Výstup: list[dict] surových firem
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scout_maps(obor: str, mesto: str) -> list[dict]:
+    """Serper Maps → Google Maps výsledky s telefonem a web statusem."""
+    if not SERPER_API_KEY:
+        print("  ⚠ Chybí SERPER_API_KEY")
+        return []
+
+    payload = {
+        "q": f"{obor} {mesto}",
+        "gl": "cz",
+        "hl": "cs",
+        "num": 20,
+    }
+    try:
+        r = requests.post(SERPER_MAPS_URL, headers=SERPER_HEADERS, json=payload, timeout=15)
+        r.raise_for_status()
+        data = r.json()
+    except Exception as e:
+        print(f"  ⚠ Serper Maps chyba: {e}")
+        return []
+
+    firms = []
+    for place in data.get("places", []):
+        # Vyčisti telefon
+        phone_raw = place.get("phoneNumber", "") or place.get("phone", "") or ""
+        phone = re.sub(r"[^\d+]", "", phone_raw)
+        if phone.startswith("00420"):
+            phone = "+" + phone[2:]
+        elif phone.startswith("420") and len(phone) == 12:
+            phone = "+" + phone
+
+        firms.append({
+            "nazev":     place.get("title", ""),
+            "adresa":    place.get("address", mesto),
+            "mesto":     mesto,
+            "telefon":   phone,
+            "web":       place.get("website", "") or "",
+            "rating":    place.get("rating", None),
+            "obor":      obor,
+            "zdroj":     "serper_maps",
+            "place_id":  place.get("cid", "") or place.get("placeId", ""),
+        })
+
+    print(f"  📍 Maps: {len(firms)} výsledků pro '{obor} {mesto}'")
+    return firms
+
+
+def scout_organic(obor: str, mesto: str) -> list[dict]:
+    """Serper organic → site:firmy.cz snippety s telefonem."""
+    if not SERPER_API_KEY:
+        return []
+
+    # Dvě queries: firmy.cz a obecný google search
+    queries = [
+        f"site:firmy.cz {obor} {mesto}",
+        f"{obor} {mesto} kontakt telefon",
+    ]
+
+    firms = []
+    for query in queries:
+        payload = {
+            "q": query,
+            "gl": "cz",
+            "hl": "cs",
+            "num": 10,
+        }
+        try:
+            r = requests.post(SERPER_SEARCH_URL, headers=SERPER_HEADERS, json=payload, timeout=15)
+            r.raise_for_status()
+            data = r.json()
+        except Exception as e:
+            print(f"  ⚠ Serper search chyba: {e}")
+            continue
+
+        for result in data.get("organic", []):
+            title   = result.get("title", "")
+            snippet = result.get("snippet", "")
+            link    = result.get("link", "")
+
+            # Extrahuj telefon ze snippetu
+            phone_match = re.search(r"(\+420[\s\d]{9,13}|0[\d]{9}|[6-7]\d{8})", snippet.replace(" ", ""))
+            phone = phone_match.group(0) if phone_match else ""
+
+            # Extrahuj jméno firmy z titulku
+            name = re.sub(r"\s*[-|–]\s*(Firmy\.cz|Zlaté stránky|Yelp|Facebook).*$", "", title, flags=re.I).strip()
+
+            if name and len(name) > 3:
+                # Zjisti web ze snippetu — hledáme "web:", "www.", "http"
+                web_in_snippet = re.search(r"(?:web|www)\s*[:=]?\s*(https?://\S+|www\.\S+)", snippet, re.I)
+                web = web_in_snippet.group(1) if web_in_snippet else ""
+
+                firms.append({
+                    "nazev":    name,
+                    "adresa":   mesto,
+                    "mesto":    mesto,
+                    "telefon":  phone,
+                    "web":      web,
+                    "rating":   None,
+                    "obor":     obor,
+                    "zdroj":    f"serper_organic:{link[:60]}",
+                    "place_id": "",
+                })
+
+    print(f"  🔍 Organic: {len(firms)} výsledků pro '{obor} {mesto}'")
+    return firms
+
+
+def run_scout(targets: list[tuple]) -> list[dict]:
+    """SUB-AGENT 1: Scout — prohledá všechny targets."""
+    print("\n🕵️  SUB-AGENT 1: SCOUT spuštěn")
+    all_firms = []
+    for obor, mesto in targets:
+        # Primárně Maps (nejlepší data)
+        firms = scout_maps(obor, mesto)
+        # Doplňkově organic (více výsledků, ale méně strukturované)
+        firms += scout_organic(obor, mesto)
+        all_firms.extend(firms)
+        time.sleep(0.5)  # rate limiting
+
+    print(f"\n  Scout celkem: {len(all_firms)} surových výsledků")
+    return all_firms
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SUB-AGENT 2: QUALIFIER
+# Zodpovědnost: filtrace, deduplikace, prioritizace
+# Vstup: list[dict] surových | Výstup: list[dict] kvalifikovaných leadů
+# ══════════════════════════════════════════════════════════════════════════════
+
+def classify_web_status(web: str) -> tuple[str, int]:
+    """
+    Vrátí (web_status, priority):
+      bez_webu    → 1 (nejlepší lead)
+      jen_social  → 2 (dobrý lead)
+      spatny_web  → 3 (slabý lead)
+      ma_web      → None (přeskočit)
+    """
+    if not web or web.strip() == "":
+        return "bez_webu", 1
+
+    web_lower = web.lower()
+
+    # Jen sociální sítě = nemá opravdový web
+    for domain in SOCIAL_DOMAINS:
+        if domain in web_lower:
+            return "jen_social", 2
+
+    # Má web — jde o URL s TLD
+    if re.search(r"https?://|www\.", web_lower):
+        # Špatný web: stará nebo placená šablona (neřeší se teď, přeskočit)
+        return "ma_web", None
+
+    # Nejasné — chovej se jako bez webu
+    return "bez_webu", 1
+
+
+def run_qualifier(firms: list[dict]) -> list[dict]:
+    """SUB-AGENT 2: Qualifier — filtrace + deduplikace."""
+    print("\n🔍 SUB-AGENT 2: QUALIFIER spuštěn")
+    leads = []
+    seen = set()
+
+    for f in firms:
+        # Deduplikace: název firmy (prvních 20 znaků lowercase)
+        name_key = re.sub(r"\s+", "", f["nazev"].lower())[:20]
+        if not name_key or name_key in seen:
+            continue
+
+        web_status, priority = classify_web_status(f.get("web", ""))
+        if priority is None:
+            continue  # má web → přeskočit
+
+        # Vyžadujeme alespoň telefon NEBO jméno delší než 5 znaků
+        if not f.get("telefon") and len(f.get("nazev", "")) < 5:
+            continue
+
+        seen.add(name_key)
+        leads.append({
+            **f,
+            "web_status": web_status,
+            "priority":   priority,
+            "stav":       "novy",
+        })
+
+    # Seřadit: priority 1 s telefonem první
+    leads.sort(key=lambda x: (x["priority"], 0 if x["telefon"] else 1))
+
+    print(f"  Qualifier: {len(leads)} kvalifikovaných leadů (z {len(firms)} surových)")
+    print(f"  Bez webu: {sum(1 for l in leads if l['web_status'] == 'bez_webu')}")
+    print(f"  Jen social: {sum(1 for l in leads if l['web_status'] == 'jen_social')}")
+    print(f"  S telefonem: {sum(1 for l in leads if l['telefon'])}")
+    return leads
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SUB-AGENT 3: EMAIL WRITER
+# Zodpovědnost: Claude napíše personalizované emaily + volací skripty
+# Vstup: top 10 leadů | Výstup: markdown s emaily
+# ══════════════════════════════════════════════════════════════════════════════
+
+def run_email_writer(leads: list[dict]) -> str:
+    """SUB-AGENT 3: EmailWriter — personalizované cold emaily přes Claude."""
+    print("\n✍️  SUB-AGENT 3: EMAIL WRITER spuštěn")
+
+    if not ANTHROPIC_API_KEY or not leads:
+        return "❌ Chybí API klíč nebo žádné leady."
+
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    top10 = leads[:10]
+
+    leads_text = "\n".join(
+        f"{i+1}. {l['nazev']} | {l['obor']} | {l['mesto']} | "
+        f"tel: {l['telefon'] or '—'} | web: {l['web_status']} | "
+        f"{'⭐' + str(l['rating']) if l.get('rating') else ''}"
+        for i, l in enumerate(top10)
     )
 
-    analyst = Agent(
-        role="Obchodní analytik",
-        goal=(
-            "Zhodnotit potenciál každé firmy ze seznamu a seřadit top 5 podle priority. "
-            "Kritéria: má telefonní nebo emailový kontakt, zdá se aktivní, nemá web nebo má velmi zastaralý, "
-            "je to lokální firma (ne nadnárodní řetězec)."
-        ),
-        backstory=(
-            "Jsi analytik s ostrým obchodním instinktem. "
-            "Víš přesně které leady stojí za čas a které ne. "
-            "Hodnotíš střízlivě, bez přehnaného optimismu. "
-            "Tvé hodnocení je podkladem pro personalizovaný outreach."
-        ),
-        verbose=True,
-        allow_delegation=False,
-        llm="anthropic/claude-sonnet-4-6",
+    prompt = f"""Pro každou z těchto {len(top10)} CZ firem napiš:
+1. Krátký volací skript (3-4 věty) — co říct při hovoru
+2. Následný email po hovoru (bude odeslán POUZE po souhlasu při hovoru)
+
+FIRMY:
+{leads_text}
+
+KONTEXT:
+- Jsi Ondřej, CZ freelance webdesigner
+- Firmy nemají web nebo mají jen Facebook stránku
+- Nejdřív zavoláš a zmíníš že máš pro ně připravený návrh webu zdarma
+- Teprve po souhlasu pošleš email s náhledem
+- Weby děláš pro živnostníky a řemeslníky, cena 15-25 tisíc Kč
+- Email se posílá z: ondrej.cabelka@gmail.com
+
+FORMÁT PRO KAŽDOU FIRMU:
+## {'{'}číslo{'}'}. [NÁZEV FIRMY]
+**Volací skript:**
+[3-4 věty co říct po telefonu]
+
+**Email po souhlasu:**
+Předmět: [max 55 znaků]
+[tělo emailu, max 80 slov, zmíni konkrétní detail o firmě]
+Podpis: Ondřej Čábelka | ondrej.cabelka@gmail.com
+
+---
+
+Pravidla:
+- Styl: přirozený, neformální čeština
+- Každý email unikátní — zmíní konkrétní obor nebo město
+- Žádný spam jazyk (bez "AKCE!", "ZDARMA!!!")
+- Volací skript je stručný a jde přímo k věci"""
+
+    msg = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=4000,
+        messages=[{"role": "user", "content": prompt}]
     )
 
-    outreach_specialist = Agent(
-        role="Specialista na obchodní komunikaci",
-        goal=(
-            "Napsat personalizovaný email v češtině pro každou firmu z top 5 seznamu. "
-            "Styl: přátelský, neagresivní, zmíní konkrétní věc o jejich firmě, nabídne zdarma mockup webu. "
-            "Email nesmí vypadat jako hromadná rozesílka."
-        ),
-        backstory=(
-            "Jsi mistr cold emailů v češtině. Tvoje emaily lidé čtou, protože jsou konkrétní, "
-            "krátké a respektují příjemce. Nikdy nepíšeš generické šablony. "
-            "Každý email zmiňuje něco specifického o dané firmě. "
-            "Nabízíš hodnotu hned — zdarma mockup webu, bez závazků."
-        ),
-        verbose=True,
-        allow_delegation=False,
-        llm="anthropic/claude-sonnet-4-6",
-    )
+    result = msg.content[0].text
+    print(f"  EmailWriter: vygenerováno {len(top10)} emailů + volacích skriptů")
+    return result
 
-    # ── TASKS ────────────────────────────────────────────────────────────────
 
-    hunt_task = Task(
-        description=(
-            "Prohledej internet a najdi 10 českých nebo slovenských firem bez webu nebo se zastaralým webem. "
-            "Použij tyto vyhledávací dotazy: "
-            "'restaurace Praha bez webu kontakt', "
-            "'instalatér Brno telefon bez webových stránek', "
-            "'řemeslník Ostrava kontakt', "
-            "'site:firmy.cz instalatér', "
-            "'site:zlatestranky.cz řemeslník bez webu'. "
-            "Pro každou firmu uveď: "
-            "NÁZEV | OBOR | MĚSTO | TELEFON | EMAIL | WEB (nebo 'bez webu') | POZNÁMKA. "
-            "Výstup: přehledná tabulka v markdown formátu s 10 firmami."
-        ),
-        expected_output=(
-            "Markdown tabulka s 10 firmami. Sloupce: NÁZEV, OBOR, MĚSTO, TELEFON, EMAIL, WEB, POZNÁMKA. "
-            "Každá firma na vlastním řádku. Žádné prázdné řádky bez dat."
-        ),
-        agent=hunter,
-    )
-
-    analysis_task = Task(
-        description=(
-            "Vezmi seznam 10 firem a vyber top 5 podle těchto kritérií (seřaď od nejlepšího): "
-            "1) Má přímý kontakt (telefon nebo email) "
-            "2) Lokální firma, ne řetězec "
-            "3) Nemá web NEBO má web starší než 2010 "
-            "4) Aktivní firma (neuzavřená, fungující) "
-            "Pro každou z top 5 napiš krátké zdůvodnění (2-3 věty) proč je prioritní. "
-            "Výstup: seřazený seznam top 5 s hodnocením."
-        ),
-        expected_output=(
-            "Seřazený seznam top 5 firem s hodnocením. "
-            "Každá firma: pořadí, název, kontakt, zdůvodnění priority (2-3 věty)."
-        ),
-        agent=analyst,
-        context=[hunt_task],
-    )
-
-    outreach_task = Task(
-        description=(
-            "Pro každou firmu z top 5 seznamu napiš personalizovaný email v češtině. "
-            "Každý email musí obsahovat: "
-            "PŘEDMĚT: kreativní, osobní, max 60 znaků "
-            "TĚLO: "
-            "- Oslovení jménem firmy "
-            "- 1 věta co konkrétního jsme si o nich všimli (nemají web, nebo web z roku 200X) "
-            "- Představení: jsme malá česká agentura na weby pro živnostníky "
-            "- Nabídka: zdarma připravíme mockup jejich webu, bez závazků "
-            "- CTA: zavolejte nebo odpište, pošleme ukázku do 24 hodin "
-            "- Podpis: Ondřej, ondrej.cabelka@gmail.com "
-            "Styl: lidský, neformální, ne jako spam. Max 150 slov na email. "
-            "Odděl emaily nadpisem ## Firma X — [název]"
-        ),
-        expected_output=(
-            "5 kompletních emailů v češtině, každý pod nadpisem ## Firma X. "
-            "Každý email: PŘEDMĚT a TĚLO. Maximálně 150 slov. Žádné generické fráze."
-        ),
-        agent=outreach_specialist,
-        context=[hunt_task, analysis_task],
-    )
-
-    # ── CREW ─────────────────────────────────────────────────────────────────
-
-    crew = Crew(
-        agents=[hunter, analyst, outreach_specialist],
-        tasks=[hunt_task, analysis_task, outreach_task],
-        process=Process.sequential,
-        verbose=True,
-    )
-
-    return crew
-
+# ══════════════════════════════════════════════════════════════════════════════
+# ORCHESTRÁTOR: main()
+# ══════════════════════════════════════════════════════════════════════════════
 
 def main():
-    print("\n🏭 FACTORY A — WEB HUNTER — STARTING\n")
-    crew = build_crew()
-    result = crew.kickoff()
+    print("=" * 60)
+    print("FACTORY A — WEB HUNTER v3 (Serper Maps + Sub-agenti)")
+    print("Scout → Qualifier → EmailWriter")
+    print("=" * 60)
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    if not SERPER_API_KEY:
+        print("❌ Chybí SERPER_API_KEY v _config/.env")
+        return []
 
-    # Save full markdown output
-    md_file = OUTPUT_DIR / f"web_hunter_{timestamp}.md"
-    with open(md_file, "w", encoding="utf-8") as f:
-        f.write(f"# Web Hunter Output\n")
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # SUB-AGENT 1: Scout
+    raw_firms = run_scout(SEARCH_TARGETS)
+
+    # SUB-AGENT 2: Qualifier
+    leads = run_qualifier(raw_firms)
+
+    if not leads:
+        print("\n⚠ Qualifier nenašel žádné leady. Zkontroluj Serper API key a SEARCH_TARGETS.")
+        return []
+
+    # Uložit leads jako CSV
+    csv_path = OUTPUT_DIR / f"leads_{ts}.csv"
+    fieldnames = ["nazev","obor","mesto","adresa","telefon","web","web_status","priority","rating","stav","zdroj"]
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(leads)
+    print(f"\n✅ Leady CSV: {csv_path.name} ({len(leads)} leadů)")
+
+    # Markdown přehled
+    md_path = OUTPUT_DIR / f"leads_{ts}.md"
+    with open(md_path, "w", encoding="utf-8") as f:
+        f.write(f"# Web Hunter Leady — {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n")
+        f.write(f"**Celkem:** {len(leads)} leadů bez webu\n")
+        f.write(f"**S telefonem:** {sum(1 for l in leads if l['telefon'])}\n\n")
+        f.write("| # | NÁZEV | OBOR | MĚSTO | TELEFON | STATUS | ⭐ |\n")
+        f.write("|---|-------|------|-------|---------|--------|----|\n")
+        for i, l in enumerate(leads[:30], 1):
+            f.write(
+                f"| {i} | {l['nazev'][:35]} | {l['obor']} | {l['mesto']} | "
+                f"{l['telefon'] or '—'} | {l['web_status']} | "
+                f"{l.get('rating') or '—'} |\n"
+            )
+    print(f"✅ Leady MD: {md_path.name}")
+
+    # SUB-AGENT 3: EmailWriter
+    emails = run_email_writer(leads)
+    emails_path = OUTPUT_DIR / f"outreach_{ts}.md"
+    with open(emails_path, "w", encoding="utf-8") as f:
+        f.write(f"# Outreach — Emaily + Volací skripty\n")
         f.write(f"Vygenerováno: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-        f.write("---\n\n")
-        f.write(str(result))
+        f.write(emails)
+    print(f"✅ Outreach: {emails_path.name}")
 
-    # Save leads as basic CSV
-    csv_file = OUTPUT_DIR / f"leads_{timestamp}.csv"
-    with open(csv_file, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["NÁZEV", "OBOR", "MĚSTO", "TELEFON", "EMAIL", "WEB", "STAV"])
-        writer.writerow(["(leady jsou v markdown souboru výše)", "", "", "", "", "", ""])
+    # Souhrn
+    top_with_phone = [l for l in leads if l["telefon"]][:5]
+    print(f"\n📊 SOUHRN:")
+    print(f"  Celkem leadů: {len(leads)}")
+    print(f"  S telefonem: {len(top_with_phone)}")
+    print(f"\n  Top 5 pro volání:")
+    for l in top_with_phone:
+        print(f"  → {l['nazev']} | {l['obor']} | {l['mesto']} | {l['telefon']}")
 
-    print(f"\n✅ Výstup uložen do: {md_file}")
-    print(f"✅ CSV šablona uložena do: {csv_file}")
-    return str(result)
+    return leads
 
 
 if __name__ == "__main__":

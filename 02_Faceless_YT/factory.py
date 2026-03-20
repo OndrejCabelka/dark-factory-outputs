@@ -38,7 +38,8 @@ def build_crew():
         ),
         tools=[search_tool],
         verbose=True, allow_delegation=False,
-        llm="anthropic/claude-sonnet-4-6",
+        max_iter=3,
+        llm="anthropic/claude-haiku-4-5-20251001",  # Haiku stačí na research
     )
 
     script_writer = Agent(
@@ -52,7 +53,8 @@ def build_crew():
             "Conversational, direct, no filler. Uses pattern interrupts and curiosity gaps naturally."
         ),
         verbose=True, allow_delegation=False,
-        llm="anthropic/claude-sonnet-4-6",
+        max_iter=2,
+        llm="anthropic/claude-sonnet-4-6",  # Sonnet pro kvalitu skriptu
     )
 
     seo_specialist = Agent(
@@ -66,7 +68,8 @@ def build_crew():
             "Writes descriptions that serve both algorithm and human readers."
         ),
         verbose=True, allow_delegation=False,
-        llm="anthropic/claude-sonnet-4-6",
+        max_iter=2,
+        llm="anthropic/claude-haiku-4-5-20251001",  # Haiku stačí na metadata/SEO
     )
 
     research_task = Task(
@@ -113,6 +116,7 @@ def build_crew():
         tasks=[research_task, script_task, metadata_task],
         process=Process.sequential,
         verbose=True,
+        max_rpm=8,
     )
     return crew, research_task, script_task, metadata_task
 

@@ -112,7 +112,8 @@ def build_crew():
         backstory="Sharp market analyst who spots trends early. Data-backed, zero fluff.",
         tools=[search_tool, scrape_tool],
         verbose=True, allow_delegation=False,
-        llm="anthropic/claude-sonnet-4-6",
+        max_iter=3,
+        llm="anthropic/claude-haiku-4-5-20251001",
     )
 
     product_creator = Agent(
@@ -120,7 +121,8 @@ def build_crew():
         goal="Create a complete, immediately publishable digital product — full content, zero placeholders.",
         backstory="Prolific creator who has sold hundreds of products on Gumroad. Delivers actual content.",
         verbose=True, allow_delegation=False,
-        llm="anthropic/claude-sonnet-4-6",
+        max_iter=2,
+        llm="anthropic/claude-sonnet-4-6",  # Sonnet pro kvalitu produktu
     )
 
     copywriter = Agent(
@@ -128,7 +130,8 @@ def build_crew():
         goal="Write a compelling Gumroad/Etsy listing that converts: title, description, bullets, tags, price.",
         backstory="Direct-response copywriter specialising in digital products. Benefit-driven, specific.",
         verbose=True, allow_delegation=False,
-        llm="anthropic/claude-sonnet-4-6",
+        max_iter=2,
+        llm="anthropic/claude-haiku-4-5-20251001",
     )
 
     research_task = Task(
@@ -174,6 +177,7 @@ def build_crew():
         tasks=[research_task, creation_task, marketing_task],
         process=Process.sequential,
         verbose=True,
+        max_rpm=8,
     )
     return crew, creation_task, marketing_task
 

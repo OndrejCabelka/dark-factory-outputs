@@ -14,15 +14,17 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright browsers
-RUN pip install playwright && playwright install chromium
-
 # Copy project
 COPY . .
 
 # Create output and log dirs
-RUN mkdir -p _outputs/digital_products _outputs/web_hunter _outputs/youtube _logs
+RUN mkdir -p _outputs/digital_products _outputs/web_hunter _outputs/youtube \
+             _outputs/seo_content _outputs/data_products _outputs/leads_api \
+             _logs _config
 
 ENV PYTHONUNBUFFERED=1
+ENV CONTINUOUS_LOOP=true
+ENV LOOP_DELAY_MINUTES=60
 
-CMD ["python", "scheduler.py"]
+# Claude Orchestrator jako CEO — rozhoduje co spustit každých 60 minut
+CMD ["python", "orchestrator.py", "--loop"]
