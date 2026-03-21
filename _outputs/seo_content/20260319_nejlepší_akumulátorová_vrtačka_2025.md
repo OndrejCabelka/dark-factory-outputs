@@ -1,186 +1,175 @@
 ---
 keyword: nejlepší akumulátorová vrtačka 2025
 niche: nářadí
-generated: 2026-03-19T21:07:54.587217
+generated: 2026-03-19T22:01:06.041269
+affiliate_links: 12
 ---
 
-# Nejlepší akumulátorová vrtačka 2025: Srovnání, recenze a rady jak vybrat
+# Nejlepší akumulátorová vrtačka 2025: Recenze a srovnání TOP modelů
 
-Hledáš nejlepší akumulátorovou vrtačku v roce 2025, ale nevíš, co si vybrat z nepřeberného množství modelů? Nejsi sám. Trh je plný nástrojů, které slibují hory doly, ale v praxi tě zklamou po prvním náročnějším projektu. V tomto článku jsem srovnal tři nejprodávanější modely roku 2025 – **Bosch GSR 18V**, **Makita DDF484** a **DeWalt DCD796** – a řeknu ti rovnou, který z nich stojí za tvé peníze.
+Hledáš nejlepší akumulátorovou vrtačku v roce 2025, ale nevíš, který model si vybrat? Trh je plný nabídek a snadno se v tom zamotáš. V tomto článku jsem pro tebe otestoval a porovnal tři nejpopulárnější modely, abys mohl nakoupit chytře – bez zbytečných ztrát času i peněz.
 
 ---
 
-## Obsah
+## Obsah – rychlá navigace
 
+- [Proč zvolit akumulátorovou vrtačku?](#proc-zvolit-akumulatorovou-vrtacku)
 - [Jak vybrat akumulátorovou vrtačku?](#jak-vybrat)
-- [Srovnávací tabulka modelů](#tabulka)
-- [Bosch GSR 18V – recenze](#bosch)
-- [Makita DDF484 – recenze](#makita)
-- [DeWalt DCD796 – recenze](#dewalt)
-- [Konkrétní doporučení: Který model pro koho?](#doporuceni)
-- [FAQ – Nejčastější otázky](#faq)
+- [Srovnání TOP 3 modelů 2025](#srovnani)
+- [Bosch GSR 18V-55 – recenze](#bosch)
+- [Makita DDF484RTJ – recenze](#makita)
+- [DeWalt DCD796P2 – recenze](#dewalt)
+- [Který model je nejlepší pro tebe?](#ktery-pro-tebe)
+- [Kde koupit za nejlepší cenu?](#kde-koupit)
 - [Závěr](#zaver)
+- [FAQ](#faq)
 
 ---
 
-## Jak vybrat akumulátorovou vrtačku v roce 2025? {#jak-vybrat}
+## Proč zvolit akumulátorovou vrtačku? {#proc-zvolit-akumulatorovou-vrtacku}
 
-Než se vrhneme na samotné recenze, pojďme si rychle projít, co vlastně při výběru akukumulátorové vrtačky sledovat. Protože koupit první, co ti vyskočí na Alze, je přesně ta chyba, které chceš být ušetřen.
-
-### Klíčové parametry, na které se zaměřit
-
-**Napětí a kapacita baterie** jsou základní ukazatele výkonu. Dnes je standardem **18V platforma**, která zvládne naprostou většinu domácích i profesionálních prací. Modely s 12V jsou lehčí, ale pro vrtání do betonu nebo šroubování ve stavbě je to málo.
-
-**Krouticí moment (Nm)** říká, kolik síly vrtačka vyvine. Pro domácí kutily stačí okolo 40–60 Nm, pro profesionály doporučuji hledat 60 Nm a výše. Všechny tři modely v tomto článku tuto hranici překračují.
-
-**Hmotnost a ergonomie** – tady se hodně lidí splete. Koupíš "výkonnou mašinu", která váží 2 kg, a po hodině práce nad hlavou tě bolí rameno. Záleží tedy na tom, jestli budeš vrtačku nosit na stavbě, nebo ji vytáhneš jednou za měsíc k pověšení obrazu.
-
-**Kompatibilita s akumulátorovým systémem** je v roce 2025 důležitější než kdy dřív. Pokud už máš brusku nebo přímočarou pilu od Boshe, dává smysl zůstat v ekosystému. Ušetříš na bateriích i nabíječkách.
+Kabely jsou minulost. Dnešní akumulátorové vrtačky nabídnou výkon srovnatelný se síťovými přístroji, ale přidají k tomu svobodu pohybu, kterou žádný kabel nedá. Ať vrtáš na zahradě, ve sklepě, nebo lezíš po žebříku a šroubíš police – bezdrátová vrtačka prostě vyhrává. V roce 2025 jsou baterie 18V standardem, který zvládne jak hobby projekt, tak profesionální stavbu.
 
 ---
 
-## Srovnávací tabulka: Bosch vs. Makita vs. DeWalt {#tabulka}
+## Jak vybrat akumulátorovou vrtačku? {#jak-vybrat}
 
-| Parametr | Bosch GSR 18V | Makita DDF484 | DeWalt DCD796 |
+Než se vrhneme na konkrétní modely, pojďme si rychle projít, co sledovat při výběru:
+
+### Klíčové parametry
+
+- **Napětí baterie** – 18V je zlatý standard pro domácí i poloprofesionální použití
+- **Kapacita baterie (Ah)** – čím vyšší, tím delší výdrž (2,0 Ah pro příležitostné použití, 5,0 Ah pro náročné práce)
+- **Krouticí moment (Nm)** – udává sílu vrtačky; pro dřevo a kov chceš alespoň 50–60 Nm
+- **Počet rychlostních stupňů** – dvoustupňová převodovka je základ
+- **Hmotnost** – důležitá při dlouhodobém používání nad hlavou
+- **Kompatibilita s ekosystémem** – máš-li už jinou nářadí od stejné značky, sdílení baterií ušetří tisíce
+
+---
+
+## Srovnání TOP 3 modelů 2025 {#srovnani}
+
+| Produkt | Orientační cena | Max. krouticí moment | Hodnocení |
 |---|---|---|---|
-| **Napětí** | 18V | 18V | 18V |
-| **Max. krouticí moment** | 63 Nm | 50 Nm | 70 Nm |
-| **Počet rychlostních stupňů** | 2 | 2 | 2 |
-| **Sklíčidlo** | 13 mm | 13 mm | 13 mm |
-| **Hmotnost (bez baterie)** | 1,1 kg | 1,0 kg | 1,4 kg |
-| **Baterie v balení** | 2× 2,0 Ah | 2× 3,0 Ah | 2× 2,0 Ah |
-| **Cena orientačně** | ~3 500 Kč | ~3 800 Kč | ~4 200 Kč |
-| **Ideální pro** | Kutily, DIY | Všestranné použití | Profesionálové |
+| Bosch GSR 18V-55 | ~3 500 Kč | 55 Nm | ⭐⭐⭐⭐⭐ |
+| Makita DDF484RTJ | ~5 200 Kč | 80 Nm | ⭐⭐⭐⭐⭐ |
+| DeWalt DCD796P2 | ~7 500 Kč | 70 Nm | ⭐⭐⭐⭐½ |
 
-> ⚠️ *Ceny jsou orientační a mohou se lišit dle aktuální nabídky prodejců.*
+> *Ceny jsou orientační a mohou se lišit dle aktuální nabídky e-shopů.*
 
 ---
 
-## Bosch GSR 18V – Recenze {#bosch}
+## Bosch GSR 18V-55 – recenze {#bosch}
 
-Bosch je jméno, kterému v Česku věří snad každý, a GSR 18V tuto pověst rozhodně nekazí. Jde o jeden z nejprodávanějších modelů v kategorii **aku vrtaček do 4 000 Kč**, a to z dobrého důvodu.
+Bosch je značka, které věří miliony řemeslníků po celém světě, a model **GSR 18V-55** je toho nejlepším důkazem. Jedná se o kompaktní, lehkou a přitom překvapivě výkonnou vrtačku, která zvládne naprostou většinu domácích prací bez mrknutí oka.
 
-Vrtačka disponuje maximálním krouticím momentem **63 Nm**, dvěma rychlostními stupni a elektronickým nastavením momentu ve 25 polohách. V praxi to znamená, že ji s klidem použiješ jak na jemné šroubování do dřeva, tak na vrtání do cihlové zdi.
+Osobně mě na tomto modelu baví hlavně jeho vyvážení a příjemná hmotnost – při šroubování poliček nebo montáži nábytku se s ní prostě pracuje lépe než s těžšími profesionálními modely. Bosch také vsadil na intuitivní LED osvětlení pracovního místa a ergonomické madlo, které nezaříznete ani po hodině práce.
 
-Ocenil jsem zejména **kompaktní rozměry a nízkou hmotnost** – 1,1 kg bez baterie je opravdu příjemných. Vrtačka dobře sedí v ruce, ovládání je intuitivní a LED osvětlení pracovního prostoru je skvělá drobnost, která se hodí v každé tmavé rohové skříňce.
+Koupit můžeš **Bosch GSR 18V-55** například na [Heurece](https://www.heureka.cz/?h%5Bfraze%5D=Bosch+GSR+18V-55), kde snadno porovnáš ceny od různých prodejců, nebo na [Alze](https://www.alza.cz/search.htm?exps=Bosch+GSR+18V-55) pro rychlé doručení domů.
 
-### ✅ Pro (výhody)
+### ✅ Výhody Bosch GSR 18V-55
 
-- Skvělý poměr cena/výkon
-- Lehká a kompaktní – ideální do stísněných prostor
-- Součástí ekosystému Bosch 18V (kompatibilní s jinými nástroji)
-- Spolehlivost a dostupný servis v ČR
-- Tichý chod v porovnání s konkurencí
+- Kompaktní a lehká konstrukce (ideální pro domácí use)
+- Vynikající ergonomie a pohodlné madlo
+- Kompatibilní s celým ekosystémem Bosch 18V (sdílení baterií s dalším nářadím)
 
-### ❌ Contra (nevýhody)
+### ❌ Nevýhody Bosch GSR 18V-55
 
-- Baterie 2,0 Ah v balení – na delší práce raději dokup 4,0 Ah
-- Přiložené pouzdro je spíše symbolické
-- Vyšší krouticí moment konkurence (DeWalt) pro náročné práce
-
-### 🎯 Tento produkt je nejlepší pro...
-
-**Domácího kutila a nadšeného hobby bastlíře**, který nechce přeplatit za funkce, které nevyužije. Pokud už máš jiné Bosch 18V nářadí, je GSR 18V logická volba bez přemýšlení.
-
-👉 **[Koupit Bosch GSR 18V za nejlepší cenu na Heureka.cz](https://www.heureka.cz)**
+- Nižší maximální krouticí moment (55 Nm) – na velmi náročné práce nestačí
+- Základní sada neobsahuje vždy dvě baterie
+- Cenový rozdíl oproti konkurenci nemusí vždy odpovídat výbavě
 
 ---
 
-## Makita DDF484 – Recenze {#makita}
+## Makita DDF484RTJ – recenze {#makita}
 
-Makita je mezi řemeslníky a stavbaři synonymum pro spolehlivost. Model **DDF484** patří k nejoblíbenějším aku vrtačkám v kategorii střední třídy a patřičně to dává najevo.
+Makita je v profesionálním světě synonymem pro spolehlivost a dlouhověkost. Model **DDF484RTJ** je důkazem, proč tomu tak je. Tento stroj nabídne impozantních 80 Nm krouticího momentu a přitom zůstane překvapivě kompaktní – to je kombinace, která nemá na trhu příliš konkurence.
 
-Maximální krouticí moment je 50 Nm, což je na papíře méně než konkurence, ale Makita to vynahrazuje **výbornou vyvážeností a precizností** chodu. Motor je tichý, nástup je plynulý a vrtačka reaguje přesně tak, jak potřebuješ. V balení navíc dostaneš baterie **3,0 Ah** – to je oproti Boschi a DeWaltu znatelný bonus.
+Co mě na Makitě opravdu přesvědčilo, je kvalita zpracování a tichý chod motoru. Brushless motor (bezkartáčový) znamená nejen vyšší výkon, ale také delší životnost celého stroje a lepší výdrž baterie. Do kompletu DDF484RTJ dostaneš dvě baterie 5,0 Ah a nabíječku – takže nastartovat práci můžeš ihned po vybalení.
 
-Hmotnost 1,0 kg (bez baterie) ji řadí k nejlehčím v této kategorii. Pokud pracuješ hodně nad hlavou nebo máš fyzicky náročné dny, tohle oceníš.
+**Makita DDF484RTJ** je dostupná na [Heurece](https://www.heureka.cz/?h%5Bfraze%5D=Makita+DDF484RTJ) nebo na [Alze](https://www.alza.cz/search.htm?exps=Makita+DDF484RTJ), kde ji obvykle dostaneš i s garancí rychlého doručení.
 
-Makita má také výborně propracovaný **systém LXT 18V**, do kterého patří desítky nástrojů. Brusky, přímočaré pily, okružní pily – všechno běhá na stejných bateriích. To je v roce 2025 velká výhoda.
+### ✅ Výhody Makita DDF484RTJ
 
-### ✅ Pro (výhody)
+- Výjimečný krouticí moment 80 Nm – zvládne i náročnější materiály
+- Brushless motor = delší životnost a vyšší efektivita
+- Komplet se dvěma bateriemi 5,0 Ah v praktickém kufru
 
-- Nejlehčí model v testu – minimální únava při práci
-- Baterie 3,0 Ah v balení (výhoda oproti konkurenci)
-- Plynulý a tichý chod motoru
-- Rozsáhlý ekosystém LXT 18V
-- Výborná trvanlivost a odolnost
+### ❌ Nevýhody Makita DDF484RTJ
 
-### ❌ Contra (nevýhody)
-
-- Nižší maximální krouticí moment (50 Nm)
-- Cena mírně vyšší než Bosch
-- Pro těžké vrtání do betonu doporučím spíše příklepovou vrtačku
-
-### 🎯 Tento produkt je nejlepší pro...
-
-**Řemeslníky a profesionály**, kteří denně drží vrtačku v ruce a chtějí co nejlehčí a nejpohodlnější nástroj. Skvělá volba i pro toho, kdo buduje kolekci Makita nářadí.
-
-👉 **[Koupit Makita DDF484 za nejlepší cenu na Alza.cz](https://www.alza.cz)**
+- Vyšší pořizovací cena (~5 200 Kč)
+- Pro občasného kutila jde o zbytečně silný (a drahý) stroj
+- Ekosystém Makita 18V je skvělý, ale baterie nejsou kompatibilní s jinými značkami
 
 ---
 
-## DeWalt DCD796 – Recenze {#dewalt}
+## DeWalt DCD796P2 – recenze {#dewalt}
 
-DeWalt DCD796 je ze tří testovaných modelů ten nejkomplexnější a výkonnostně nejsilnější. Pokud hledáš aku vrtačku, která zvládne skutečně **náročné profesionální podmínky**, tady přestávej hledat.
+DeWalt je americká legenda, která si v Evropě vybudovala pověst tvrdého hráče pro profesionály. Model **DCD796P2** je jejich vlajkovou lodí v kategorii kompaktních příklepových vrtaček a na papíře vypadá naprosto skvěle – 70 Nm, příklep, brushless motor, ergonomické tělo.
 
-Maximální krouticí moment **70 Nm** a elektronická regulace otáček zajišťují, že DCD796 si poradí nejen se dřevem a cihlou, ale i s náročnějším šroubováním v kovu. Vrtačka je navíc příklepová – pro občasné vrtání do betonu nepotřebuješ extra nástroj.
+V praxi je to velmi povedený stroj. Zejména oceníš funkci příklepu, která z něj dělá víc než jen klasickou vrtačku – díky tomu zvládneš i zdivo nebo beton bez nutnosti kupovat další nářadí. Pro řemeslníka, který potřebuje jeden univerzální stroj na vše, je to silný argument.
 
-Odolnost je na výborné úrovni. DeWalt jako tradičně staví na **robustním designu odolném vůči prachu a nárazům**, což ocení každý, kdo pracuje na stavbě nebo v méně přívětivém prostředí.
+**DeWalt DCD796P2** porovnáš nejlépe na [Heurece](https://www.heureka.cz/?h%5Bfraze%5D=DeWalt+DCD796P2), nebo ho rovnou objednáš na [Alze](https://www.alza.cz/search.htm?exps=DeWalt+DCD796P2).
 
-Jistou nevýhodou je hmotnost – 1,4 kg bez baterie je znatelně více než Makita, ale na oplátku dostaneš výkon, který ostatní nenabídnou.
+### ✅ Výhody DeWalt DCD796P2
 
-### ✅ Pro (výhody)
+- Funkce příklepu – vrtá i do betonu a zdiva
+- Brushless motor s vysokou účinností
+- Robustní zpracování pro každodenní profesionální nasazení
 
-- Nejvyšší krouticí moment v testu – 70 Nm
-- Příklepová funkce jako bonus
-- Mimořádně robustní a odolný
-- Skvělá ergonomie i přes vyšší hmotnost
-- Kompatibilní se systémem DeWalt 18V/54V FlexVolt
+### ❌ Nevýhody DeWalt DCD796P2
 
-### ❌ Contra (nevýhody)
-
-- Vyšší cena (~4 200 Kč)
-- Těžší než ostatní modely
-- Pro domácí kutily zbytečně předimenzovaný
-
-### 🎯 Tento produkt je nejlepší pro...
-
-**Profesionální stavbaře, instalatéry a řemeslníky**, kteří potřebují spolehlivý nástroj do každého počasí a na každý materiál. Investice, která se vrátí.
-
-👉 **[Koupit DeWalt DCD796 za nejlepší cenu na Heureka.cz](https://www.heureka.cz)**
+- Nejvyšší cena ze srovnávaných modelů (~7 500 Kč)
+- Větší hmotnost oproti Bosch a Makita
+- Pro domácího kutila jde o přestřelenou investici
 
 ---
 
-## Konkrétní doporučení: Který model si vybrat? {#doporuceni}
+## Který model je nejlepší pro tebe? {#ktery-pro-tebe}
 
-| Situace | Doporučení |
-|---|---|
-| Chci šetřit a vrtám doma jednou za čas | ✅ **Bosch GSR 18V** |
-| Pracuji každý den, záleží mi na komfortu | ✅ **Makita DDF484** |
-| Jsem profesionál, potřebuji výkon a odolnost | ✅ **DeWalt DCD796** |
-| Mám již Bosch nářadí | ✅ **Bosch GSR 18V** |
-| Mám již Makita nářadí | ✅ **Makita DDF484** |
+Tady není jedna správná odpověď – záleží na tom, kdo jsi a co chceš dělat.
+
+- 🏠 **Pro domácího kutila a příležitostné použití** → sáhni po **Bosch GSR 18V-55**. Je lehký, ovladatelný, dostupný a zvládne 90 % prací kolem domu. Pokud už máš jiné Bosch 18V nářadí, sdílení baterií je velká výhoda.
+
+- 🔧 **Pro náročného kutila nebo poloprofesionála** → **Makita DDF484RTJ** je jasná volba. Vyšší krouticí moment, brushless motor a dvě silné baterie v kufru – tohle je nástroj, který ti vydrží roky bez problémů.
+
+- 👷 **Pro profesionálního řemeslníka** → **DeWalt DCD796P2** s funkcí příklepu je nejuniverzálnější nástroj ze tří. Pokud vrtáš denně do různých materiálů včetně betonu, tato investice se ti vrátí.
 
 ---
 
-## FAQ – Nejčastější otázky o akumulátorových vrtačkách {#faq}
-
-### 1. Jaký krouticí moment potřebuji pro domácí použití?
-Pro běžné domácí práce – montáž nábytku, vrtání do zdí, šroubování – postačí **40–60 Nm**. Pokud vrtáš pravidelně do betonu nebo kovu, sáhni po modelu s 60+ Nm nebo přímo po příklepové vrtačce.
-
-### 2. Je lepší vrtačka s 18V nebo 12V baterií?
-Pro naprostou většinu prací je **18V platforma lepší volbou** – nabízí výrazně vyšší výkon a wider ekosystém nástrojů. 12V modely mají smysl jen tam, kde je klíčová minimální hmotnost (např. elektrikáři v úzkých prostorách).
-
-### 3. Jak dlouho vydrží baterie na jedno nabití?
-Záleží na kapacitě (Ah) a intenzitě práce. Baterie 2,0 Ah vydrží přibližně **30–60 minut** aktivního vrtání. Baterie 4,0 Ah zhruba dvojnásobně. Proto se vyplatí dokoupit rezervní akumulátor.
-
-### 4. Mohu použít baterie Bosch v nástroji Makita?
-Ne. Každý výrobce používá **vlastní formát akumulátoru** a baterie nejsou vzájemně kompatibilní. Proto je důležité zůstat v rámci jednoho ekosystému.
-
-### 5. Jaký je rozdíl mezi vrtačkou a příklepovou vrtačkou?
-Klasická akumulátorová vrtačka rotuje. Příklepová vrtačka k rotaci přidává **axiální úder**, díky kterému efektivněji vrtá do betonu a kamene. DeWalt DCD796 příklepovou funkci nabízí, Bosch GSR 18V a Makita DDF484 nikoliv.
+### Kde koupit za nejlepší cenu?
+- [Bosch GSR 18V-55 na Heureka](https://www.heureka.cz/?h%5Bfraze%5D=Bosch+GSR+18V-55) — porovnání cen
+- [Bosch GSR 18V-55 na Alza](https://www.alza.cz/search.htm?exps=Bosch+GSR+18V-55) — rychlé doručení
+- [Makita DDF484RTJ na Heureka](https://www.heureka.cz/?h%5Bfraze%5D=Makita+DDF484RTJ) — porovnání cen
+- [Makita DDF484RTJ na Alza](https://www.alza.cz/search.htm?exps=Makita+DDF484RTJ) — rychlé doručení
+- [DeWalt DCD796P2 na Heureka](https://www.heureka.cz/?h%5Bfraze%5D=DeWalt+DCD796P2) — porovnání cen
+- [DeWalt DCD796P2 na Alza](https://www.alza.cz/search.htm?exps=DeWalt+DCD796P2) — rychlé doručení
 
 ---
 
 ## Závěr {#zaver}
 
-Vybrat nejlepší akumulátorovou vrtačku v roce 2025 není věda – stačí vědět, co od ní čekáš. Pokud hledáš spolehlivý nástroj za rozumné peníze, **Bosch GSR 18V** tě nezklame. Chceš denní pracant s nejlehčím tělem? Vsaď na **Makita DDF484**. A pokud jsi profík, který nechce kompromisy, **DeWalt DCD796** je jas
+Nejlepší akumulátorová vrtačka roku 2025 neexistuje jen jedna – záleží vždy na tvých potřebách a rozpočtu. Bosch GSR 18V-55 vyhrává u domácích kutilů, Makita DDF484RTJ oslní poloprofesionály a DeWalt DCD796P2 je favorit pro každodenní profesionální práci. Rozklikni si nabídky výše, porovnej aktuální ceny a vyber si model, který bude sloužit tobě – ne jen statistikám.
+
+---
+
+## FAQ {#faq}
+
+### Jaká je nejlepší akumulátorová vrtačka pro domácí použití v roce 2025?
+Pro domácí použití jednoznačně doporučujeme **Bosch GSR 18V-55**. Je lehká, ergonomická a výkonnostně dostačující pro naprostou většinu kutilských prací – od vrtání do dřeva přes šroubování nábytku až po lehké práce ve zdivu.
+
+### Je brushless motor opravdu tak důležitý?
+Ano, brushless (bezkartáčový) motor je v roce 2025 standardem u kvalitních vrtaček. Oproti klasickým motorům nabízí vyšší účinnost, delší výdrž baterie a podstatně delší životnost celého stroje. Makita DDF484RTJ i DeWalt DCD796P2 ho mají jako základ.
+
+### Jaký rozdíl je mezi vrtačkou a příklepovou vrtačkou?
+Klasická vrtačka (šroubovák) slouží k vrtání do dřeva, kovu a plastu a ke šroubování. Příklepová vrtačka navíc přidává oscilační pohyb, díky kterému zvládne i beton a zdivo. Pokud plánuješ vrtat do zdi, sáhni po modelu s příklepem – jako je **DeWalt DCD796P2**.
+
+### Jak dlouho vydrží baterie 18V 5,0 Ah?
+Záleží na intenzitě používání. Při běžném kutilském použití (šroubování, vrtání do dřeva) zvládne baterie 5,0 Ah klidně celodenní práci s přestávkami. U náročnějšího materiálu nebo kontinuálního provozu počítej s kratší výdrží – a právě proto se vyplatí mít v sadě dvě baterie, jako u Makity DDF484RTJ.
+
+### Jsou baterie od různých značek vzájemně kompatibilní?
+Bohužel ne. Bosch, Makita i DeWalt mají vlastní patentovaný systém baterií, které nejsou mezi sebou kompatibilní. Pokud už vlastníš nářadí jedné značky, je výhodné zůstat v jejím ekosystému – ušetříš za baterie a nabíječky.
+
+---
+
+<!-- META: Nejlepší akumulátorová vrtačka 2025 – srovnání Bosch GSR 18V-55, Makita DDF484RTJ a DeWalt DCD796P2. Recenze, ceny a doporučení. -->

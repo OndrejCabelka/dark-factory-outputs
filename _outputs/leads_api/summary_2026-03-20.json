@@ -1,0 +1,40 @@
+{
+  "generated": "2026-03-20T23:38:50.898507",
+  "period": "Týden do 2026-03-20",
+  "total_leads": 3,
+  "bez_webu": 2,
+  "spatny_web": 1,
+  "top_obory": [
+    [
+      "instalatér",
+      1
+    ],
+    [
+      "elektrikář",
+      1
+    ],
+    [
+      "tesař",
+      1
+    ]
+  ],
+  "top_mesta": [
+    [
+      "Praha",
+      1
+    ],
+    [
+      "Brno",
+      1
+    ],
+    [
+      "Ostrava",
+      1
+    ]
+  ],
+  "pricing": {
+    "monthly_feed": "500–2000 Kč/měsíc",
+    "contact": "ondrej.cabelka@gmail.com",
+    "info": "Týdenní CSV feed čerstvých CZ firem bez webu nebo se špatným webem. Ideální pro webové agentury a freelancery."
+  }
+}

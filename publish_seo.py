@@ -230,6 +230,41 @@ def make_slug(title: str) -> str:
 
 # ── PUBLISHER ─────────────────────────────────────────────────────────────────
 
+def _get_related_links(current_slug: str, current_keyword: str) -> str:
+    """Vrátí HTML sekci s 3 příbuznými články pro interní linking."""
+    ALL_ARTICLES = [
+        ("nejlepsi-akumulatorova-vrtacka-2025", "Nejlepší akumulátorová vrtačka 2025"),
+        ("jak-vybrat-tlakovy-cistic-na-terasu", "Jak vybrat tlakový čistič na terasu"),
+        ("srovnani-robotickych-sekacek-2025", "Srovnání robotických sekaček 2025"),
+        ("nejlepsi-elektricka-pila-na-drevo-pro-domacnost", "Nejlepší elektrická pila na dřevo"),
+        ("jak-zatepleni-fasady-setri-na-topeni", "Jak zateplení fasády šetří na topení"),
+        ("recenze-bezdratovy-vysavac-dyson-vs-xiaomi", "Recenze bezdrátový vysavač Dyson vs Xiaomi"),
+        ("chytra-domacnost-levne-nejlepsi-starter-kit-2025", "Chytrá domácnost levně 2025"),
+        ("nejlepsi-tepelne-cerpadlo-vzduch-voda-2025", "Nejlepší tepelné čerpadlo vzduch-voda 2025"),
+        ("jak-vybrat-zahradni-sekacku-s-pojezdem", "Jak vybrat zahradní sekačku s pojezdem"),
+        ("nejlepsi-akumulatorova-bruska-na-drevo-2025", "Nejlepší akumulátorová bruska 2025"),
+        ("jak-vybrat-stresni-okno-velux-vs-fakro-srovnani", "Střešní okno: Velux vs Fakro srovnání"),
+        ("srovnani-parnich-cisticu-na-podlahy-2025", "Srovnání parních čističů na podlahy 2025"),
+        ("nejlepsi-garazova-vrata-sekcni-vs-vyklopna", "Nejlepší garážová vrata: sekční vs výklopná"),
+        ("recenze-roboticky-vysavac-irobot-vs-roborock-2025", "iRobot vs Roborock 2025: srovnání"),
+    ]
+    BASE = "https://ondrejcabelka.github.io/dark-factory-outputs/seo/"
+    related = [a for a in ALL_ARTICLES if a[0] != current_slug][:3]
+    if not related:
+        return ""
+    items = "\n".join(
+        f'      <li><a href="{BASE}{s}/">{t}</a></li>'
+        for s, t in related
+    )
+    return f"""
+<section style="background:#f0f4ff;border-radius:10px;padding:20px 24px;margin:2em 0;">
+  <h3 style="margin-top:0;color:#1e40af;">📚 Podobné články</h3>
+  <ul style="list-style:none;padding:0;margin:0;">
+{items}
+  </ul>
+</section>"""
+
+
 def publish_article(md_path: Path) -> str | None:
     """Publikuje jeden MD soubor. Vrátí URL nebo None."""
     md = md_path.read_text(encoding="utf-8")
@@ -253,12 +288,16 @@ def publish_article(md_path: Path) -> str | None:
     read_time = max(1, len(md.split()) // 200)
     canonical = f"https://ondrejcabelka.github.io/dark-factory-outputs/seo/{slug}/"
 
+    # Interní linking — najdi 3 příbuzné články
+    related_html = _get_related_links(slug, keyword)
+    body_with_related = body + "\n" + related_html
+
     html = HTML_TEMPLATE.format(
         title=title,
         description=description,
         keywords=f"{keyword}, {niche}, recenze, srovnání, návod",
         canonical_url=canonical,
-        body=body,
+        body=body_with_related,
         date=datetime.now().strftime("%-d. %-m. %Y"),
         read_time=read_time,
         year=datetime.now().year,
@@ -324,18 +363,69 @@ def publish_article(md_path: Path) -> str | None:
 
 
 def _update_sitemap(repo_dir: Path):
-    """Vygeneruje sitemap.xml ze všech HTML stránek."""
+    """Vygeneruje sitemap.xml, robots.txt a index stránku."""
+    from datetime import date
+    today = date.today().isoformat()
     urls = []
-    for html_file in (repo_dir / "seo").rglob("index.html"):
+    articles = []
+
+    for html_file in sorted((repo_dir / "seo").rglob("index.html")):
         rel = html_file.parent.relative_to(repo_dir)
         url = f"https://ondrejcabelka.github.io/dark-factory-outputs/{rel}/"
-        urls.append(f"  <url><loc>{url}</loc><changefreq>weekly</changefreq></url>")
+        urls.append(f"  <url><loc>{url}</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq></url>")
+        # Extrahuj titulek pro index stránku
+        html_text = html_file.read_text(encoding="utf-8")
+        import re as _re
+        t = _re.search(r"<title>([^<]+)</title>", html_text)
+        title = t.group(1) if t else str(rel)
+        articles.append((url, title))
 
     sitemap = f"""<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 {chr(10).join(urls)}
 </urlset>"""
     (repo_dir / "sitemap.xml").write_text(sitemap)
+
+    # robots.txt
+    robots = """User-agent: *
+Allow: /
+Sitemap: https://ondrejcabelka.github.io/dark-factory-outputs/sitemap.xml
+"""
+    (repo_dir / "robots.txt").write_text(robots)
+
+    # Index stránka se všemi články
+    article_links = "\n".join(
+        f'  <li><a href="{u}">{t}</a></li>'
+        for u, t in sorted(articles, key=lambda x: x[1])
+    )
+    index_html = f"""<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recenze a srovnání produktů 2025 | Dark Factory</title>
+  <meta name="description" content="Nezávislé recenze, srovnání a nákupní průvodce pro CZ trh. Nářadí, zahrada, domácnost, stavba.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://ondrejcabelka.github.io/dark-factory-outputs/">
+  <style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 780px;
+           margin: 0 auto; padding: 40px 20px; color: #1a1a2e; }}
+    h1 {{ font-size: 1.8em; }} h2 {{ color: #2563eb; margin-top: 2em; }}
+    ul {{ list-style: none; padding: 0; }} li {{ margin: 10px 0; }}
+    a {{ color: #2563eb; text-decoration: none; }}
+    a:hover {{ text-decoration: underline; }}
+  </style>
+</head>
+<body>
+  <h1>Recenze a srovnání produktů 2025</h1>
+  <p>Nezávislé recenze, srovnání a nákupní průvodce pro CZ trh.</p>
+  <h2>Všechny články</h2>
+  <ul>
+{article_links}
+  </ul>
+</body>
+</html>"""
+    (repo_dir / "index.html").write_text(index_html, encoding="utf-8")
 
 
 # ── MAIN ─────────────────────────────────────────────────────────────────────

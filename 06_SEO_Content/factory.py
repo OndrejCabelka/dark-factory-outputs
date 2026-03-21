@@ -145,7 +145,79 @@ ARTICLE_QUEUE = [
         "target_length": 2100,
         "affiliate_products": ["Hörmann LPU 40", "Wiśniowski Industry 2", "Normstahl Eco 2000"],
     },
+    # --- Kolo 3: vyšší AOV, méně konkurence, CZ long-tail ---
+    {
+        "keyword": "nejlepší solární panely pro rodinný dům 2025",
+        "intent": "commercial",
+        "affiliate_niche": "energie",
+        "target_length": 2200,
+        "affiliate_products": ["Suntech STP320", "Jinko Solar Eagle 400W", "LONGi Hi-MO5 410W"],
+    },
+    {
+        "keyword": "jak vybrat klimatizaci do bytu — split vs mobilní",
+        "intent": "commercial",
+        "affiliate_niche": "klimatizace",
+        "target_length": 1900,
+        "affiliate_products": ["Daikin Perfera FTXM35R", "Mitsubishi MSZ-AP35VGK", "LG Artcool S12ET"],
+    },
+    {
+        "keyword": "nejlepší zahradní traktor sekačka 2025 srovnání",
+        "intent": "commercial",
+        "affiliate_niche": "zahrada",
+        "target_length": 2100,
+        "affiliate_products": ["Honda HF 2315 HME", "Husqvarna TS 347", "STIGA Tornado 3098 H"],
+    },
+    {
+        "keyword": "recenze elektrické koloběžky pro dospělé 2025",
+        "intent": "commercial",
+        "affiliate_niche": "mobilita",
+        "target_length": 1800,
+        "affiliate_products": ["Xiaomi Electric Scooter 4 Pro", "Segway Ninebot Max G2", "Apollo City Pro"],
+    },
+    {
+        "keyword": "nejlepší myčka nádobí do malé kuchyně 2025",
+        "intent": "commercial",
+        "affiliate_niche": "domácnost",
+        "target_length": 1700,
+        "affiliate_products": ["Bosch SMS2ITI12E", "Siemens SN23HW64CE", "AEG FSB52610Z"],
+    },
+    {
+        "keyword": "jak vybrat pračku — přední vs vrchní plnění 2025",
+        "intent": "informational",
+        "affiliate_niche": "domácnost",
+        "target_length": 1900,
+        "affiliate_products": ["Samsung WW80T534DAE", "Miele WDB030 WCS", "Bosch WAX32M40BY"],
+    },
+    {
+        "keyword": "nejlepší notebook do 20000 Kč 2025 — srovnání",
+        "intent": "commercial",
+        "affiliate_niche": "elektronika",
+        "target_length": 2000,
+        "affiliate_products": ["Lenovo ThinkPad E16 Gen 2", "ASUS VivoBook 16X", "HP EliteBook 640 G10"],
+    },
+    {
+        "keyword": "recenze vzduchová fritéza — Philips vs Tefal vs Ninja",
+        "intent": "commercial",
+        "affiliate_niche": "domácnost",
+        "target_length": 1800,
+        "affiliate_products": ["Philips NA352/00", "Tefal Easy Fry XXL EY801D", "Ninja AF160EU"],
+    },
+    {
+        "keyword": "nejlepší zahradní gril na dřevěné uhlí 2025",
+        "intent": "commercial",
+        "affiliate_niche": "zahrada",
+        "target_length": 1700,
+        "affiliate_products": ["Weber Master-Touch GBS Premium E-5775", "Char-Broil Kettleman", "Napoleon Rodeo PRO"],
+    },
+    {
+        "keyword": "jak vybrat fotovoltaiku pro firmu — návratnost a cena 2025",
+        "intent": "informational",
+        "affiliate_niche": "energie",
+        "target_length": 2400,
+        "affiliate_products": ["Growatt SPH 10000TL3 BH-UP", "Solax X3-Hybrid G4 10kW", "SMA Sunny Tripower 10.0"],
+    },
 ]
+
 
 
 def generate_seo_article(article_spec: dict) -> str:
