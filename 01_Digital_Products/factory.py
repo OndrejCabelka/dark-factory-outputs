@@ -1,6 +1,6 @@
 """
-DARK FACTORY — Factory B: Digital Products v2
-Přímý Claude API — žádné CrewAI, žádné rate limit problémy.
+DARK FACTORY - Factory B: Digital Products v2
+Přímý Claude API - žádné CrewAI, žádné rate limit problémy.
 
 Flow:
   1. Researcher  → najde niku s tržním potenciálem
@@ -8,12 +8,12 @@ Flow:
   3. Publisher   → vygeneruje PDF + listing copy
 
 Výstupy (_outputs/digital_products/):
-  product_content_{ts}.md  — obsah produktu
-  digital_product_{ts}.md  — listing copy (název, popis, tagy pro Lemon Squeezy)
-  product_{ts}.pdf         — hotový PDF produkt
+  product_content_{ts}.md  - obsah produktu
+  digital_product_{ts}.md  - listing copy (název, popis, tagy pro Lemon Squeezy)
+  product_{ts}.pdf         - hotový PDF produkt
 """
 
-import os, re
+import os, re, textwrap
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
@@ -27,7 +27,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
-# Rotující fronta produktových nápadů — různé niky, různé formáty
+# Rotující fronta produktových nápadů - různé niky, různé formáty
 PRODUCT_IDEAS = [
     {
         "niche": "AI produktivita",
@@ -42,7 +42,7 @@ PRODUCT_IDEAS = [
         "niche": "podnikání / e-commerce",
         "format": "checklist + průvodce",
         "title": "Průvodce: Jak spustit e-shop na Shoptet za víkend",
-        "description": "Krok za krokem od nuly k prvnímu prodeji — bez agentury, bez zbytečných nákladů",
+        "description": "Krok za krokem od nuly k prvnímu prodeji - bez agentury, bez zbytečných nákladů",
         "target_buyer": "začínající e-shop majitel v CZ/SK",
         "price_eur": 12,
         "pages": 30,
@@ -69,7 +69,7 @@ PRODUCT_IDEAS = [
         "niche": "digitální nomádství",
         "format": "průvodce",
         "title": "Průvodce digitálního nomáda: Práce z Bali, Thajska a Španělska pro Čechy",
-        "description": "Daně jako OSVČ v zahraničí, pojištění, banky, levné ubytování — vše pro CZ/SK",
+        "description": "Daně jako OSVČ v zahraničí, pojištění, banky, levné ubytování - vše pro CZ/SK",
         "target_buyer": "IT freelancer nebo remote worker z CZ/SK",
         "price_eur": 14,
         "pages": 32,
@@ -91,102 +91,107 @@ def _get_next_product() -> dict:
         if key not in done_titles:
             return p
 
-    # Všechny hotové — začni znovu s první
+    # Všechny hotové - začni znovu s první
     return PRODUCT_IDEAS[0]
 
 
-def _clean_for_pdf(text: str) -> str:
+def _clean(text: str) -> str:
+    """Odstraní Markdown syntaxi."""
     text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
     text = re.sub(r"\*(.*?)\*", r"\1", text)
-    text = re.sub(r"#{1,6}\s+", "", text)
     text = re.sub(r"`(.*?)`", r"\1", text)
-    return text.encode("latin-1", errors="replace").decode("latin-1")
+    return text.strip()
 
 
 def generate_pdf(title: str, content: str, output_path: Path) -> Path:
+    """Generuje PDF pomocí reportlab - plna Unicode podpora."""
     try:
-        from fpdf import FPDF
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import ParagraphStyle
+        from reportlab.lib.colors import HexColor
+        from reportlab.lib.units import mm
+        from reportlab.platypus import (SimpleDocTemplate, Paragraph,
+                                        Spacer, HRFlowable, PageBreak)
+        from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
     except ImportError:
-        print("  ⚠ fpdf2 není nainstalován — PDF přeskočeno")
+        print("  reportlab neni - PDF preskoceno")
         return None
 
-    title_safe = _clean_for_pdf(title)
+    BLUE = HexColor("#1e40af")
+    DARK = HexColor("#111827")
+    GRAY = HexColor("#6b7280")
 
-    class PDF(FPDF):
-        def header(self):
-            self.set_font("Helvetica", "B", 8)
-            self.set_text_color(150, 150, 150)
-            self.cell(0, 6, title_safe[:70], align="R")
-            self.ln(8)
-        def footer(self):
-            self.set_y(-13)
-            self.set_font("Helvetica", "I", 8)
-            self.set_text_color(150, 150, 150)
-            self.cell(0, 8, f"Strana {self.page_no()}", align="C")
+    doc = SimpleDocTemplate(
+        str(output_path), pagesize=A4,
+        leftMargin=20*mm, rightMargin=20*mm,
+        topMargin=20*mm, bottomMargin=22*mm,
+        title=title, author="Dark Factory",
+    )
 
-    pdf = PDF(orientation="P", unit="mm", format="A4")
-    pdf.set_margins(18, 18, 18)
-    pdf.set_auto_page_break(True, margin=22)
-    pdf.add_page()
+    s_title = ParagraphStyle("T", fontName="Helvetica-Bold", fontSize=20,
+                              textColor=BLUE, spaceAfter=6, alignment=TA_CENTER)
+    s_sub   = ParagraphStyle("S", fontName="Helvetica", fontSize=10,
+                              textColor=GRAY, spaceAfter=4, alignment=TA_CENTER)
+    s_h1    = ParagraphStyle("H1", fontName="Helvetica-Bold", fontSize=15,
+                              textColor=BLUE, spaceBefore=10, spaceAfter=4)
+    s_h2    = ParagraphStyle("H2", fontName="Helvetica-Bold", fontSize=12,
+                              textColor=DARK, spaceBefore=8, spaceAfter=3)
+    s_h3    = ParagraphStyle("H3", fontName="Helvetica-BoldOblique", fontSize=10,
+                              textColor=DARK, spaceBefore=5, spaceAfter=2)
+    s_body  = ParagraphStyle("B", fontName="Helvetica", fontSize=9.5,
+                              textColor=DARK, spaceAfter=3, leading=13,
+                              alignment=TA_JUSTIFY)
+    s_li    = ParagraphStyle("L", fontName="Helvetica", fontSize=9.5,
+                              textColor=DARK, spaceAfter=2, leading=12,
+                              leftIndent=10)
 
-    # Titulní strana
-    pdf.set_font("Helvetica", "B", 22)
-    pdf.set_text_color(30, 64, 175)
-    pdf.ln(18)
-    pdf.multi_cell(0, 10, title_safe, align="C")
-    pdf.ln(8)
-    pdf.set_font("Helvetica", "", 11)
-    pdf.set_text_color(80, 80, 80)
-    pdf.cell(0, 6, f"Dark Factory — {datetime.now().year}", align="C")
-    pdf.ln(30)
-    pdf.set_draw_color(200, 200, 200)
-    pdf.set_line_width(0.3)
-    pdf.line(18, pdf.get_y(), 192, pdf.get_y())
-    pdf.add_page()
+    def esc(t):
+        return (t.replace("&", "&amp;")
+                 .replace("<", "&lt;")
+                 .replace(">", "&gt;"))
 
-    # Obsah
+    story = []
+    story.append(Spacer(1, 25*mm))
+    story.append(Paragraph(esc(title), s_title))
+    story.append(Spacer(1, 4*mm))
+    story.append(Paragraph(f"Dark Factory | {datetime.now().year}", s_sub))
+    story.append(Spacer(1, 5*mm))
+    story.append(HRFlowable(width="100%", thickness=0.4,
+                             color=HexColor("#e5e7eb")))
+    story.append(PageBreak())
+
+    in_code = False
     for line in content.split("\n"):
-        stripped = line.strip()
-        if not stripped:
-            pdf.ln(3)
+        s = line.strip()
+        if s.startswith("```"):
+            in_code = not in_code
             continue
-
-        safe = _clean_for_pdf(stripped)
-
-        if line.startswith("# "):
-            pdf.set_font("Helvetica", "B", 16)
-            pdf.set_text_color(30, 64, 175)
-            pdf.ln(4)
-            pdf.multi_cell(0, 8, safe[2:] if safe.startswith("# ") else safe)
-            pdf.ln(2)
-        elif line.startswith("## "):
-            pdf.set_font("Helvetica", "B", 13)
-            pdf.set_text_color(55, 65, 81)
-            pdf.ln(3)
-            pdf.multi_cell(0, 7, safe[3:] if safe.startswith("## ") else safe)
-            pdf.ln(1)
-        elif line.startswith("### "):
-            pdf.set_font("Helvetica", "B", 11)
-            pdf.set_text_color(75, 85, 99)
-            pdf.multi_cell(0, 6, safe[4:] if safe.startswith("### ") else safe)
-        elif stripped.startswith("- ") or stripped.startswith("• "):
-            pdf.set_font("Helvetica", "", 10)
-            pdf.set_text_color(30, 30, 30)
-            item = safe[2:] if safe.startswith("- ") else safe[2:]
-            pdf.cell(6, 5, "•")
-            pdf.multi_cell(0, 5, item)
-        elif re.match(r"^\d+\.", stripped):
-            pdf.set_font("Helvetica", "", 10)
-            pdf.set_text_color(30, 30, 30)
-            pdf.multi_cell(0, 5, safe)
+        if in_code:
+            continue
+        if not s:
+            story.append(Spacer(1, 1.5*mm))
+            continue
+        text = esc(_clean(s))
+        if not text:
+            continue
+        if s.startswith("# "):
+            story.append(Paragraph(esc(_clean(s[2:])), s_h1))
+        elif s.startswith("## "):
+            story.append(Paragraph(esc(_clean(s[3:])), s_h2))
+        elif s.startswith("### "):
+            story.append(Paragraph(esc(_clean(s[4:])), s_h3))
+        elif s.startswith("---"):
+            story.append(HRFlowable(width="100%", thickness=0.3,
+                                    color=HexColor("#e5e7eb")))
+        elif re.match(r"^[\-\*] ", s):
+            story.append(Paragraph(f"&#8226;&nbsp;{esc(_clean(s[2:]))}", s_li))
+        elif re.match(r"^\d+\. ", s):
+            story.append(Paragraph(text, s_li))
         else:
-            pdf.set_font("Helvetica", "", 10)
-            pdf.set_text_color(30, 30, 30)
-            pdf.multi_cell(0, 5, safe)
+            story.append(Paragraph(text, s_body))
 
-    pdf.output(str(output_path))
+    doc.build(story)
     return output_path
-
 
 def run_researcher(product: dict, client: anthropic.Anthropic) -> str:
     """Sub-agent 1: Validuje trh a upřesní positioning."""
@@ -240,12 +245,12 @@ INSTRUKCE:
 
 POŽADAVKY:
 - Psáno v češtině, profesionálně ale přístupně
-- Konkrétní, actionable — žádné vaty, žádné obecné rady
+- Konkrétní, actionable - žádné vaty, žádné obecné rady
 - Strukturováno pomocí nadpisů (# ## ###)
 - Reálná čísla, příklady z CZ trhu kde relevantní
 - Každá sekce musí přinést jasnou hodnotu zákazníkovi
 
-Piš rovnou obsah — bez úvodu o tom co budeš psát."""}]
+Piš rovnou obsah - bez úvodu o tom co budeš psát."""}]
     )
     return msg.content[0].text
 
@@ -278,7 +283,7 @@ Napiš:
 
 def main():
     print("=" * 55)
-    print("FACTORY B — DIGITAL PRODUCTS v2 (přímý Claude API)")
+    print("FACTORY B - DIGITAL PRODUCTS v2 (přímý Claude API)")
     print("Researcher → Writer → ListingWriter")
     print("=" * 55)
 

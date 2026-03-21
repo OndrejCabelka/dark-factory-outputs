@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.99.3",
     "@vapi-ai/web": "^2.5.2",
     "next": "14.2.5",
     "react": "^18",

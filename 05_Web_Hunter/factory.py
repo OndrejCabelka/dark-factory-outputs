@@ -7,7 +7,7 @@ Sub-agent 2 (Qualifier): Filtruje kdo opravdu nemá web, deduplikuje
 Sub-agent 3 (EmailWriter): Claude napíše personalizované emaily + volací skripty
 """
 
-import os, re, csv, time, json, requests
+import os, re, csv, time, json, requests, uuid
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
@@ -22,6 +22,8 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 SERPER_API_KEY    = os.getenv("SERPER_API_KEY", "")
+SUPABASE_URL      = os.getenv("SUPABASE_URL", "")
+SUPABASE_KEY      = os.getenv("SUPABASE_ANON_KEY", "")
 
 # Serper endpoints
 SERPER_MAPS_URL    = "https://google.serper.dev/maps"
@@ -324,6 +326,73 @@ Pravidla:
 # ORCHESTRÁTOR: main()
 # ══════════════════════════════════════════════════════════════════════════════
 
+# ══════════════════════════════════════════════════════════════════════════════
+# SUPABASE UPSERT
+# Uloží leady do WebHunter DB — graceful fallback pokud chybí klíče
+# ══════════════════════════════════════════════════════════════════════════════
+
+def save_to_supabase(leads: list[dict]) -> int:
+    """Upsertuje leady do Supabase `leads` tabulky. Vrátí počet vložených."""
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        print("\n  ⚠ SUPABASE_URL / SUPABASE_ANON_KEY nejsou v .env — přeskakuji DB upsert")
+        print("    → Nastav proměnné v _config/.env pro ukládání do WebHunter dashboardu")
+        return 0
+
+    try:
+        from supabase import create_client
+    except ImportError:
+        print("  ⚠ supabase-py není nainstalováno: pip install supabase")
+        return 0
+
+    try:
+        db = create_client(SUPABASE_URL, SUPABASE_KEY)
+    except Exception as e:
+        print(f"  ⚠ Supabase připojení selhalo: {e}")
+        return 0
+
+    inserted = 0
+    skipped  = 0
+
+    for lead in leads:
+        # Mapování Factory A polí → DB schema
+        place_id = lead.get("place_id") or ""
+        if not place_id:
+            # Vygeneruj deterministické ID z názvu+města (aby upsert fungoval)
+            place_id = "gen_" + uuid.uuid5(
+                uuid.NAMESPACE_DNS,
+                f"{lead['nazev'].lower()}_{lead['mesto'].lower()}"
+            ).hex[:16]
+
+        row = {
+            "name":            lead.get("nazev", "")[:200],
+            "obor":            lead.get("obor", "")[:100],
+            "mesto":           lead.get("mesto", "")[:100],
+            "telefon":         lead.get("telefon") or None,
+            "email":           None,          # e-mail finder není součástí scraperu
+            "web_status":      lead.get("web_status", "bez_webu"),
+            "web_url":         lead.get("web") or None,
+            "web_issues":      [],
+            "priority":        lead.get("priority", 1),
+            "stav":            "novy",
+            "google_place_id": place_id,
+            "tracking_id":     uuid.uuid4().hex,
+        }
+
+        try:
+            # upsert: pokud google_place_id existuje → ignoruj (zachovej stav)
+            db.table("leads").upsert(row, on_conflict="google_place_id", ignore_duplicates=True).execute()
+            inserted += 1
+        except Exception as e:
+            err = str(e)
+            if "duplicate" in err.lower() or "23505" in err:
+                skipped += 1
+            else:
+                print(f"  ⚠ Upsert chyba ({lead.get('nazev', '?')}): {err[:80]}")
+
+    print(f"\n  📦 Supabase: {inserted} vloženo, {skipped} přeskočeno (duplicita)")
+    return inserted
+
+
 def main():
     print("=" * 60)
     print("FACTORY A — WEB HUNTER v3 (Serper Maps + Sub-agenti)")
@@ -345,6 +414,9 @@ def main():
     if not leads:
         print("\n⚠ Qualifier nenašel žádné leady. Zkontroluj Serper API key a SEARCH_TARGETS.")
         return []
+
+    # Uložit do Supabase (WebHunter dashboard DB)
+    save_to_supabase(leads)
 
     # Uložit leads jako CSV
     csv_path = OUTPUT_DIR / f"leads_{ts}.csv"

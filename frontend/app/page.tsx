@@ -274,6 +274,156 @@ function OutputFile({ file }: { file: any }) {
   )
 }
 
+// ── CALL QUEUE (WebHunter Fáze 3) ────────────────────────────────────────────
+function CallQueueTab() {
+  const [leads, setLeads]       = useState<any[]>([])
+  const [total, setTotal]       = useState(0)
+  const [configured, setConf]   = useState(true)
+  const [loading, setLoading]   = useState(true)
+  const [activeLead, setActive] = useState<any>(null)
+  const [note, setNote]         = useState('')
+  const [saving, setSaving]     = useState(false)
+  const [dayStats, setDayStats] = useState({ called: 0, souhlas: 0, odmitl: 0, nedostupny: 0 })
+  const [msg, setMsg]           = useState<{ text: string; ok: boolean } | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const r = await fetch('/api/call-queue')
+      const d = await r.json()
+      setLeads(d.leads || [])
+      setTotal(d.total || 0)
+      setConf(d.supabase_configured !== false)
+    } finally { setLoading(false) }
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  const logCall = async (result: string) => {
+    if (!activeLead) return
+    setSaving(true)
+    try {
+      const r = await fetch('/api/log-call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeLead.id, result, note }),
+      })
+      const d = await r.json()
+      if (d.ok) {
+        setMsg({ text: result === 'souhlas_k_mailu' ? '✅ Souhlas — mail bude odeslán!' : result === 'odmitl' ? '❌ Odmítl — archivováno' : '📞 Nedostupný — vrátí se do fronty', ok: result === 'souhlas_k_mailu' })
+        setDayStats(s => ({
+          ...s,
+          called: s.called + 1,
+          souhlas:    result === 'souhlas_k_mailu' ? s.souhlas + 1 : s.souhlas,
+          odmitl:     result === 'odmitl'          ? s.odmitl + 1  : s.odmitl,
+          nedostupny: result === 'nedostupny'      ? s.nedostupny + 1 : s.nedostupny,
+        }))
+        setActive(null); setNote('')
+        await load()
+      } else {
+        setMsg({ text: `Chyba: ${d.error}`, ok: false })
+      }
+    } finally {
+      setSaving(false)
+      setTimeout(() => setMsg(null), 4000)
+    }
+  }
+
+  if (!configured) return (
+    <div style={{ padding: '40px 0', textAlign: 'center' as const, color: GRAY }}>
+      <div style={{ fontSize: 32, marginBottom: 12 }}>🔌</div>
+      <div style={{ color: '#ccc', fontWeight: 700, marginBottom: 8 }}>Supabase není připojeno</div>
+      <div style={{ fontSize: 12, marginBottom: 16 }}>Nastav <code style={{ color: ORANGE }}>SUPABASE_URL</code> a <code style={{ color: ORANGE }}>SUPABASE_ANON_KEY</code> v Vercel env vars.</div>
+      <div style={{ fontSize: 11, color: '#444' }}>Schéma DB: <code>05_Web_Hunter/schema.sql</code></div>
+    </div>
+  )
+
+  if (loading) return <div style={{ color: GRAY, padding: 40, textAlign: 'center' as const }}>Načítám frontu...</div>
+
+  return (
+    <div>
+      {/* Denní statistiky */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
+        {[
+          { label: 'Zavoláno dnes', value: dayStats.called, color: BLUE },
+          { label: 'Souhlas', value: dayStats.souhlas, color: GREEN },
+          { label: 'Odmítl', value: dayStats.odmitl, color: RED },
+          { label: 'Nedostupný', value: dayStats.nedostupny, color: YELLOW },
+        ].map((s, i) => (
+          <div key={i} style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '12px 16px' }}>
+            <div style={{ fontSize: 10, color: GRAY, textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 4 }}>{s.label}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: s.color }}>{s.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {msg && (
+        <div style={{ marginBottom: 14, padding: '10px 16px', background: msg.ok ? '#00ff8811' : '#ff444411', border: `1px solid ${msg.ok ? '#00ff8844' : '#ff444444'}`, borderRadius: 8, fontSize: 13, color: msg.ok ? GREEN : RED }}>
+          {msg.text}
+        </div>
+      )}
+
+      {/* Aktivní lead — výsledek hovoru */}
+      {activeLead && (
+        <div style={{ background: '#0d1a0d', border: `1px solid ${GREEN}44`, borderRadius: 14, padding: 20, marginBottom: 20 }}>
+          <div style={{ fontSize: 11, color: GREEN, textTransform: 'uppercase' as const, letterSpacing: 2, marginBottom: 10 }}>📞 Zaznamenat výsledek hovoru</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{activeLead.name}</div>
+          <div style={{ fontSize: 13, color: GRAY, marginBottom: 16 }}>{activeLead.obor} · {activeLead.mesto} · <span style={{ color: ORANGE }}>{activeLead.telefon || '—'}</span></div>
+          <input
+            value={note} onChange={e => setNote(e.target.value)}
+            placeholder="Poznámka k hovoru (volitelné)..."
+            style={{ width: '100%', background: '#111', border: `1px solid ${BORDER}`, color: '#ccc', padding: '8px 12px', borderRadius: 8, fontSize: 12, marginBottom: 14, outline: 'none' }}
+          />
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => logCall('souhlas_k_mailu')} disabled={saving} style={{ flex: 1, padding: '12px 0', background: GREEN, color: '#000', border: 'none', borderRadius: 8, fontWeight: 800, fontSize: 13, cursor: saving ? 'wait' : 'pointer' }}>
+              ✅ Souhlas — pošli návrh
+            </button>
+            <button onClick={() => logCall('nedostupny')} disabled={saving} style={{ flex: 1, padding: '12px 0', background: YELLOW + '22', color: YELLOW, border: `1px solid ${YELLOW}44`, borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: saving ? 'wait' : 'pointer' }}>
+              📞 Nedostupný
+            </button>
+            <button onClick={() => logCall('odmitl')} disabled={saving} style={{ flex: 1, padding: '12px 0', background: RED + '11', color: RED, border: `1px solid ${RED}33`, borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: saving ? 'wait' : 'pointer' }}>
+              ❌ Odmítl
+            </button>
+            <button onClick={() => { setActive(null); setNote('') }} disabled={saving} style={{ padding: '12px 16px', background: 'none', color: GRAY, border: `1px solid ${BORDER}`, borderRadius: 8, fontSize: 12, cursor: 'pointer' }}>
+              Zrušit
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Fronta leadů */}
+      {leads.length === 0 ? (
+        <div style={{ padding: '60px 0', textAlign: 'center' as const, color: GRAY }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>📭</div>
+          <div>Fronta je prázdná — spusť Factory A pro nové leady</div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+          <div style={{ fontSize: 11, color: GRAY, marginBottom: 4 }}>{total} leadů ve frontě · klikni pro zahájení záznamu</div>
+          {leads.map((lead: any) => {
+            const isActive = activeLead?.id === lead.id
+            return (
+              <div key={lead.id} onClick={() => { setActive(isActive ? null : lead); setNote('') }}
+                style={{ background: isActive ? '#0d1a0d' : CARD, border: `1px solid ${isActive ? GREEN + '66' : BORDER}`, borderRadius: 10, padding: '14px 16px', cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: lead.priority === 1 ? GREEN : YELLOW, flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, color: '#fff', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{lead.name}</div>
+                  <div style={{ fontSize: 11, color: GRAY, marginTop: 2 }}>{lead.obor} · {lead.mesto}</div>
+                </div>
+                <div style={{ textAlign: 'right' as const, flexShrink: 0 }}>
+                  <div style={{ fontSize: 13, color: ORANGE, fontWeight: 700 }}>{lead.telefon || '—'}</div>
+                  <div style={{ fontSize: 10, color: GRAY, marginTop: 2 }}>{lead.web_status === 'bez_webu' ? '🔴 bez webu' : lead.web_status === 'jen_social' ? '🟡 jen FB' : '🟠 špatný web'}</div>
+                </div>
+                <div style={{ fontSize: 10, color: isActive ? GREEN : GRAY, flexShrink: 0 }}>{isActive ? '▼ rozbaleno' : '▶ vybrat'}</div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── MAIN DASHBOARD ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [status, setStatus]   = useState<any>(null)
@@ -281,7 +431,7 @@ export default function Dashboard() {
   const [logs, setLogs]       = useState<any[]>([])
   const [health, setHealth]   = useState<any>(null)
   const [triggering, setTriggering] = useState<string | null>(null)
-  const [activeTab, setActiveTab]   = useState<'outputs'|'logs'>('outputs')
+  const [activeTab, setActiveTab]   = useState<'outputs'|'logs'|'callqueue'>('outputs')
   const [triggerMsg, setTriggerMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [filterExt, setFilterExt]   = useState<string>('all')
   const [filterFactory, setFilterFactory] = useState<string>('all')
@@ -410,16 +560,26 @@ export default function Dashboard() {
 
         {/* Tabs */}
         <div style={{ display:'flex', gap:2, marginBottom:16, borderBottom:`1px solid ${BORDER}` }}>
-          {(['outputs','logs'] as const).map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} style={{
+          {[
+            { key: 'callqueue', label: `📞 Call Queue`, highlight: true },
+            { key: 'outputs',   label: `📁 Výstupy (${outputs?.total || 0})`, highlight: false },
+            { key: 'logs',      label: `📋 Logy (${logs.length})`,            highlight: false },
+          ].map(tab => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key as any)} style={{
               background:'none', border:'none', cursor:'pointer', padding:'8px 16px', fontSize:12,
-              fontFamily:'monospace', color: activeTab===tab ? ORANGE : GRAY, fontWeight: activeTab===tab ? 700 : 400,
-              borderBottom: activeTab===tab ? `2px solid ${ORANGE}` : '2px solid transparent', marginBottom:-1,
+              fontFamily:'monospace',
+              color: activeTab===tab.key ? (tab.highlight ? GREEN : ORANGE) : GRAY,
+              fontWeight: activeTab===tab.key ? 700 : 400,
+              borderBottom: activeTab===tab.key ? `2px solid ${tab.highlight ? GREEN : ORANGE}` : '2px solid transparent',
+              marginBottom:-1,
             }}>
-              {tab==='outputs' ? `📁 Výstupy (${outputs?.total || 0})` : `📋 Logy (${logs.length})`}
+              {tab.label}
             </button>
           ))}
         </div>
+
+        {/* Call Queue tab */}
+        {activeTab==='callqueue' && <CallQueueTab />}
 
         {/* Outputs tab */}
         {activeTab==='outputs' && (
