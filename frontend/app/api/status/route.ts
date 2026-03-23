@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
 
 const GITHUB_REPO  = process.env.GITHUB_REPO!
