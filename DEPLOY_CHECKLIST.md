@@ -1,12 +1,33 @@
 # 🚀 WebHunter — Deploy Checklist
 
 ## Stav
-- ✅ Supabase DB live (353 leadů, 16+ návrhů vygenerováno)
+- ✅ Supabase DB live (353 leadů, 27+ návrhů vygenerováno)
 - ✅ GitHub Pages: navrhy live na `ondrejcabelka.github.io/dark-factory-outputs/navrhy/`
 - ✅ Frontend build: OK, všechny API routes jsou dynamic
-- ⚠️ Vercel: frontend JEŠTĚ NENÍ nasazen — **nutno udělat**
-- ⚠️ Railway env vars: **nutno nastavit**
+- ✅ Railway: dashboard Next.js JIŽ běží — stačí přidat env vars
 - ⚠️ Resend: **nutno registrovat + ověřit doménu**
+
+---
+
+## ⚡ NEJRYCHLEJŠÍ CESTA (2 minuty) — Začni volat ještě dnes
+
+Dashboard je **již nasazen** na: `https://dark-factory-production.up.railway.app`
+
+Nefunguje kvůli chybějícím env vars. Stačí přidat na Railway:
+
+1. Jdi na **[railway.app](https://railway.app)** → projekt Dark Factory → karta **Variables**
+2. Přidej tyto 4 klíče a klikni Save:
+
+| Klíč | Hodnota |
+|------|---------|
+| `SUPABASE_URL` | `https://wqlbbxhieboybyvwdvjr.supabase.co` |
+| `SUPABASE_ANON_KEY` | `sb_publishable_nl9YngghvSmjjCoqOjtvzg_Sez5XXH-` |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://wqlbbxhieboybyvwdvjr.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_nl9YngghvSmjjCoqOjtvzg_Sez5XXH-` |
+
+3. Railway automaticky redeploys (cca 2 min) → otevři dashboard → **27 leadů připravených k volání**
+
+---
 
 ---
 
