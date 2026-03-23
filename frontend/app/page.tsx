@@ -284,18 +284,30 @@ function CallQueueTab() {
   const [note, setNote]         = useState('')
   const [saving, setSaving]     = useState(false)
   const [dayStats, setDayStats] = useState({ called: 0, souhlas: 0, odmitl: 0, nedostupny: 0 })
+  const [statsLoaded, setStatsLoaded] = useState(false)
   const [msg, setMsg]           = useState<{ text: string; ok: boolean } | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const r = await fetch('/api/call-queue')
-      const d = await r.json()
-      setLeads(d.leads || [])
-      setTotal(d.total || 0)
-      setConf(d.supabase_configured !== false)
+      const [qr, sr] = await Promise.all([
+        fetch('/api/call-queue').then(r => r.json()),
+        fetch('/api/call-stats?days=1').then(r => r.json()),
+      ])
+      setLeads(qr.leads || [])
+      setTotal(qr.total || 0)
+      setConf(qr.supabase_configured !== false)
+      if (sr.today && !statsLoaded) {
+        setDayStats({
+          called:     sr.today.called     || 0,
+          souhlas:    sr.today.souhlas    || 0,
+          odmitl:     sr.today.odmitl     || 0,
+          nedostupny: sr.today.nedostupny || 0,
+        })
+        setStatsLoaded(true)
+      }
     } finally { setLoading(false) }
-  }, [])
+  }, [statsLoaded])
 
   useEffect(() => { load() }, [load])
 

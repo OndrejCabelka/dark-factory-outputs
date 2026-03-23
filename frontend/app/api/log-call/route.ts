@@ -85,6 +85,14 @@ export async function POST(req: Request) {
     }).eq('id', id)
   }
 
+  // 5. Atomic increment denních statistik
+  try {
+    await db.rpc('increment_call_stat', {
+      p_date:   new Date().toISOString().slice(0, 10),
+      p_result: result,
+    })
+  } catch (_) { /* non-critical */ }
+
   return NextResponse.json({
     ok: true,
     id,
