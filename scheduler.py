@@ -313,6 +313,62 @@ def start_api_server():
                 all_lines = f.readlines()
             return {"logs": [l.rstrip() for l in all_lines[-lines:]]}
 
+        # ── WebHunter: odeslání mailu po souhlasu ─────────────────────────────
+        @api.post("/api/send-mail")
+        def send_mail_endpoint(body: dict):
+            try:
+                sys.path.insert(0, str(BASE_DIR))
+                from mail_engine import send_mail as _send_mail
+                from generate_web_proposal import load_index as _load_index
+
+                lead_id      = body.get("lead_id", "")
+                email        = body.get("email", "")
+                name         = body.get("name", "Firma")
+                obor         = body.get("obor", "")
+                mesto        = body.get("mesto", "")
+
+                if not email:
+                    return {"ok": False, "error": "Chybí email"}
+
+                # index je dict {slug: {lead_id, url, tracking_id, ...}}
+                index        = _load_index()
+                entry        = next((v for v in index.values() if v.get("lead_id") == lead_id), None)
+                proposal_url = entry["url"] if entry else ""
+                tracking_id  = entry.get("tracking_id", lead_id) if entry else lead_id
+
+                lead = {"id": lead_id, "name": name, "obor": obor, "mesto": mesto}
+                sent = _send_mail(to_email=email, lead=lead,
+                                  proposal_url=proposal_url, tracking_id=tracking_id)
+                log.info(f"📧 Mail {'✅ odeslán' if sent else '❌ selhal'} → {email} ({name})")
+                return {"ok": sent, "proposal_url": proposal_url}
+            except Exception as e:
+                log.error(f"send-mail error: {e}")
+                return {"ok": False, "error": str(e)}
+
+        # ── WebHunter: tracking pixel ──────────────────────────────────────────
+        @api.get("/track/open/{tracking_id}")
+        def track_open(tracking_id: str):
+            from fastapi.responses import Response
+            try:
+                sb_url = os.getenv("SUPABASE_URL", "")
+                sb_key = os.getenv("SUPABASE_ANON_KEY", "")
+                if sb_url and sb_key:
+                    import requests as _req
+                    _req.patch(
+                        f"{sb_url}/rest/v1/leads",
+                        params={"tracking_id": f"eq.{tracking_id}"},
+                        headers={"apikey": sb_key, "Authorization": f"Bearer {sb_key}",
+                                 "Content-Type": "application/json"},
+                        json={"stav": "otevrel_mail", "mail_otevren_at": datetime.now().isoformat()},
+                        timeout=3,
+                    )
+                    log.info(f"👁 Mail otevřen — tracking_id={tracking_id}")
+            except Exception as e:
+                log.warning(f"tracking pixel error: {e}")
+            GIF = b"GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+            return Response(content=GIF, media_type="image/gif",
+                            headers={"Cache-Control": "no-store, no-cache, must-revalidate"})
+
         log.info(f"🌐 API server starting on port {PORT}")
         uvicorn.run(api, host="0.0.0.0", port=PORT, log_level="warning")
     except Exception as e:

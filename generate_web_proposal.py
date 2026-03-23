@@ -242,15 +242,18 @@ def generate_for_lead(lead: dict) -> dict:
     url = publish_to_github(slug, html)
 
     # Update index
+    tracking_id = lead.get("tracking_id", lead.get("id", slug))
     metadata = {
-        "slug":       slug,
-        "nazev":      nazev,
-        "obor":       obor,
-        "mesto":      mesto,
-        "telefon":    lead.get("telefon", lead.get("tel", "")),
-        "url":        url,
-        "generated":  ts,
-        "html_size":  round(size_kb, 1),
+        "slug":         slug,
+        "lead_id":      lead.get("id", ""),
+        "tracking_id":  tracking_id,
+        "nazev":        nazev,
+        "obor":         obor,
+        "mesto":        mesto,
+        "telefon":      lead.get("telefon", lead.get("tel", "")),
+        "url":          url,
+        "generated":    ts,
+        "html_size":    round(size_kb, 1),
     }
     index[slug] = metadata
     save_index(index)
