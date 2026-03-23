@@ -75,12 +75,12 @@ export async function POST(req: Request) {
     }
   }
 
-  // 4. Pokud nedostupný → naplánuj opakování (přidej zpět do fronty za 24h)
+  // 4. Pokud nedostupný → inkrementuj pokus, zachovej stav 'nedostupny'
+  //    Call queue query ho vrátí do fronty automaticky po 24h (updated_at cutoff)
   if (result === 'nedostupny') {
     const attempts = (lead.call_attempt || 0) + 1
-    const retryStav = attempts >= 3 ? 'neodpovida' : 'novy'  // po 3x vzdáme to
     await db.from('leads').update({
-      stav: retryStav,
+      stav: attempts >= 3 ? 'neodpovida' : 'nedostupny',
       call_attempt: attempts,
     }).eq('id', id)
   }
