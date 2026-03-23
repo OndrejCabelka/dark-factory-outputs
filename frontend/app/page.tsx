@@ -451,6 +451,74 @@ function CallQueueTab() {
   )
 }
 
+// ── FUNNEL VIEW (WebHunter konverzní pipeline) ────────────────────────────────
+function FunnelTab() {
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/funnel').then(r => r.json()).then(d => { setData(d); setLoading(false) })
+  }, [])
+
+  if (loading) return <div style={{ color: GRAY, padding: 40, textAlign: 'center' as const }}>Načítám funnel...</div>
+  if (!data?.configured) return (
+    <div style={{ padding: '40px 0', textAlign: 'center' as const, color: GRAY }}>
+      <div style={{ fontSize: 32, marginBottom: 12 }}>🔌</div>
+      <div>Nastav SUPABASE_URL a SUPABASE_ANON_KEY</div>
+    </div>
+  )
+
+  const maxCount = Math.max(...(data.funnel || []).map((s: any) => s.count), 1)
+
+  return (
+    <div>
+      {/* KPI řádek */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 24 }}>
+        {[
+          { label: 'Celkem leadů',   value: data.total,       color: BLUE },
+          { label: 'Aktivní',        value: data.active,      color: ORANGE },
+          { label: 'Zákazníci',      value: data.won,         color: GREEN },
+          { label: 'Konverzní poměr', value: `${data.conversion}%`, color: data.won > 0 ? GREEN : GRAY },
+        ].map((kpi, i) => (
+          <div key={i} style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '12px 16px' }}>
+            <div style={{ fontSize: 10, color: GRAY, textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 4 }}>{kpi.label}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: kpi.color }}>{kpi.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Funnel bars */}
+      {data.total === 0 ? (
+        <div style={{ padding: '60px 0', textAlign: 'center' as const, color: GRAY }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>📭</div>
+          <div>Žádné leady — spusť Factory A pro start</div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 6 }}>
+          <div style={{ fontSize: 11, color: GRAY, textTransform: 'uppercase' as const, letterSpacing: 2, marginBottom: 8 }}>Pipeline</div>
+          {(data.funnel || []).map((stage: any) => {
+            const barColor = stage.is_win ? GREEN : stage.is_loss ? RED : ORANGE
+            const pct = Math.max((stage.count / maxCount) * 100, 2)
+            return (
+              <div key={stage.stav} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 180, fontSize: 12, color: stage.is_loss ? RED : stage.is_win ? GREEN : '#ccc', flexShrink: 0 }}>
+                  {stage.label}
+                </div>
+                <div style={{ flex: 1, background: '#111', borderRadius: 4, height: 20, overflow: 'hidden' }}>
+                  <div style={{ width: `${pct}%`, height: '100%', background: barColor + '99', borderRadius: 4, transition: 'width 0.4s ease' }} />
+                </div>
+                <div style={{ width: 32, textAlign: 'right' as const, fontSize: 13, fontWeight: 700, color: barColor, flexShrink: 0 }}>
+                  {stage.count}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── MAIN DASHBOARD ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [status, setStatus]   = useState<any>(null)
@@ -458,7 +526,7 @@ export default function Dashboard() {
   const [logs, setLogs]       = useState<any[]>([])
   const [health, setHealth]   = useState<any>(null)
   const [triggering, setTriggering] = useState<string | null>(null)
-  const [activeTab, setActiveTab]   = useState<'outputs'|'logs'|'callqueue'>('outputs')
+  const [activeTab, setActiveTab]   = useState<'outputs'|'logs'|'callqueue'|'funnel'>('outputs')
   const [triggerMsg, setTriggerMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [filterExt, setFilterExt]   = useState<string>('all')
   const [filterFactory, setFilterFactory] = useState<string>('all')
@@ -589,6 +657,7 @@ export default function Dashboard() {
         <div style={{ display:'flex', gap:2, marginBottom:16, borderBottom:`1px solid ${BORDER}` }}>
           {[
             { key: 'callqueue', label: `📞 Call Queue`, highlight: true },
+            { key: 'funnel',    label: `📊 Funnel`,     highlight: false },
             { key: 'outputs',   label: `📁 Výstupy (${outputs?.total || 0})`, highlight: false },
             { key: 'logs',      label: `📋 Logy (${logs.length})`,            highlight: false },
           ].map(tab => (
@@ -607,6 +676,9 @@ export default function Dashboard() {
 
         {/* Call Queue tab */}
         {activeTab==='callqueue' && <CallQueueTab />}
+
+        {/* Funnel tab */}
+        {activeTab==='funnel' && <FunnelTab />}
 
         {/* Outputs tab */}
         {activeTab==='outputs' && (
