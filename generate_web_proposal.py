@@ -187,14 +187,29 @@ def publish_to_github(slug: str, html: str) -> str:
     if sha:
         payload["sha"] = sha
 
-    r = requests.put(api_url, headers=headers, json=payload)
-    if r.status_code in (200, 201):
-        url = f"{BASE_URL}/{slug}/"
-        print(f"  ✅ Publikováno: {url}")
-        return url
-    else:
-        print(f"  ⚠ GitHub publish chyba {r.status_code}: {r.text[:100]}")
-        return f"{BASE_URL}/{slug}/"
+    for attempt in range(3):
+        try:
+            r = requests.put(api_url, headers=headers, json=payload, timeout=15)
+            if r.status_code in (200, 201):
+                url = f"{BASE_URL}/{slug}/"
+                print(f"  ✅ Publikováno: {url}")
+                return url
+            elif r.status_code == 422:
+                # SHA conflict — refresh SHA a zkus znovu
+                r2 = requests.get(api_url, headers=headers, timeout=10)
+                if r2.status_code == 200:
+                    payload["sha"] = r2.json().get("sha")
+                    continue
+            elif r.status_code in (429, 500, 502, 503):
+                import time as _t; _t.sleep(5 * (attempt + 1))
+                continue
+            print(f"  ⚠ GitHub publish chyba {r.status_code}: {r.text[:100]}")
+            break
+        except Exception as e:
+            import time as _t; _t.sleep(5 * (attempt + 1))
+            if attempt == 2:
+                print(f"  ⚠ GitHub publish exception: {e}")
+    return f"{BASE_URL}/{slug}/"
 
 
 # ── INDEX MANAGEMENT ──────────────────────────────────────────────────────────
