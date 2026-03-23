@@ -354,17 +354,18 @@ def save_to_supabase(leads: list[dict]) -> int:
     skipped  = 0
 
     for lead in leads:
-        # Mapování Factory A polí → DB schema
-        place_id = lead.get("place_id") or ""
+        # Mapování Factory A polí → DB schema (podporuje obě konvence: nazev i name)
+        nazev = lead.get("nazev") or lead.get("name", "")
+        place_id = lead.get("google_place_id") or lead.get("place_id") or ""
         if not place_id:
             # Vygeneruj deterministické ID z názvu+města (aby upsert fungoval)
             place_id = "gen_" + uuid.uuid5(
                 uuid.NAMESPACE_DNS,
-                f"{lead['nazev'].lower()}_{lead['mesto'].lower()}"
+                f"{nazev.lower()}_{lead.get('mesto','').lower()}"
             ).hex[:16]
 
         row = {
-            "name":            lead.get("nazev", "")[:200],
+            "name":            nazev[:200],
             "obor":            lead.get("obor", "")[:100],
             "mesto":           lead.get("mesto", "")[:100],
             "telefon":         lead.get("telefon") or None,
@@ -387,7 +388,7 @@ def save_to_supabase(leads: list[dict]) -> int:
             if "duplicate" in err.lower() or "23505" in err:
                 skipped += 1
             else:
-                print(f"  ⚠ Upsert chyba ({lead.get('nazev', '?')}): {err[:80]}")
+                print(f"  ⚠ Upsert chyba ({lead.get('nazev') or lead.get('name','?')}): {err[:80]}")
 
     print(f"\n  📦 Supabase: {inserted} vloženo, {skipped} přeskočeno (duplicita)")
     return inserted
