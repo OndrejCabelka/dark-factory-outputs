@@ -7,7 +7,7 @@ Sub-agent 2 (Qualifier): Filtruje kdo opravdu nemá web, deduplikuje
 Sub-agent 3 (EmailWriter): Claude napíše personalizované emaily + volací skripty
 """
 
-import os, re, csv, time, json, requests, uuid
+import os, re, csv, time, json, requests, uuid, sys
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
@@ -417,6 +417,22 @@ def main():
 
     # Uložit do Supabase (WebHunter dashboard DB)
     save_to_supabase(leads)
+
+    # Auto-generuj HTML návrhy pro top leady s telefonem
+    top_leads = [l for l in leads if l.get("telefon")][:5]
+    if top_leads:
+        print(f"\n🎨 Generuji HTML návrhy webu pro top {len(top_leads)} leadů...")
+        try:
+            sys.path.insert(0, str(BASE_DIR))
+            from generate_web_proposal import generate_for_lead
+            for lead in top_leads:
+                try:
+                    meta = generate_for_lead(lead)
+                    print(f"  ✅ {lead['nazev']} → {meta['url']}")
+                except Exception as e:
+                    print(f"  ⚠ Návrh selhal ({lead['nazev']}): {e}")
+        except ImportError as e:
+            print(f"  ⚠ generate_web_proposal nedostupný: {e}")
 
     # Uložit leads jako CSV
     csv_path = OUTPUT_DIR / f"leads_{ts}.csv"

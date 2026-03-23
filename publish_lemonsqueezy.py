@@ -91,17 +91,39 @@ def create_product(store_id: str, title: str, description: str, price_cents: int
 def create_variant(product_id: str, price_cents: int = 700) -> str:
     """Vytvoří variantu (Lemon Squeezy vyžaduje aspoň jednu)."""
     payload = {"data": {"type": "variants", "attributes": {
+        "name": "Default",
         "price": price_cents,
         "is_subscription": False,
-        "interval": None,
-        "interval_count": None,
         "has_free_trial": False,
+        "pay_what_you_want": False,
+        "min_price": 0,
+        "suggested_price": price_cents,
     }, "relationships": {"product": {"data": {"type": "products", "id": product_id}}}}}
     r = requests.post("https://api.lemonsqueezy.com/v1/variants", headers=HEADERS, json=payload)
     data = r.json()
     if "errors" in data:
         raise RuntimeError(f"Chyba vytvoření varianty: {data['errors']}")
     return data["data"]["id"]
+
+
+def upload_pdf_to_variant(variant_id: str, pdf_path: Path) -> str:
+    """Nahraje PDF soubor jako digitální download na variantu."""
+    import base64
+    pdf_bytes = pdf_path.read_bytes()
+    pdf_b64   = base64.b64encode(pdf_bytes).decode("ascii")
+
+    payload = {"data": {"type": "files", "attributes": {
+        "name": pdf_path.name,
+        "data": pdf_b64,
+    }, "relationships": {"variant": {"data": {"type": "variants", "id": variant_id}}}}}
+
+    r = requests.post("https://api.lemonsqueezy.com/v1/files", headers=HEADERS, json=payload)
+    data = r.json()
+    if "errors" in data:
+        raise RuntimeError(f"Chyba nahrání souboru: {data['errors']}")
+    file_id = data["data"]["id"]
+    print(f"  ✅ PDF nahráno (file_id: {file_id}, {len(pdf_bytes)//1024} kB)")
+    return file_id
 
 
 def list_products(store_id: str) -> list:
@@ -149,8 +171,11 @@ def publish(price_cents: int = 700) -> str | None:
     product_id = create_product(store_id, title, description, price_cents)
     print(f"  ✅ Product ID: {product_id}")
 
-    create_variant(product_id, price_cents)
-    print(f"  ✅ Varianta vytvořena")
+    variant_id = create_variant(product_id, price_cents)
+    print(f"  ✅ Varianta vytvořena (id: {variant_id})")
+
+    upload_pdf_to_variant(variant_id, pdf)
+    print(f"  ✅ PDF soubor nahrán")
 
     url = get_product_url(product_id)
     print(f"\n🎉 LIVE: {url}")

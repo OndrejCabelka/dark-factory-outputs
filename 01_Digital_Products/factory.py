@@ -335,7 +335,23 @@ def main():
     print(f"   Obsah: {word_count} slov | PDF: {pdf_path.name if result else 'chyba'}")
     print(f"   Doporučená cena: {product['price_eur']} EUR")
     print(f"   Listing copy: {listing_path.name}")
-    print(f"\n→ Nahraj PDF na Lemon Squeezy: https://app.lemonsqueezy.com/products")
+    # Auto-publish na Lemon Squeezy (pokud je API klíč nastaven)
+    ls_key = os.getenv("LEMONSQUEEZY_API_KEY", "")
+    if ls_key and result and result.exists():
+        print(f"\n🛒 Auto-publish na Lemon Squeezy...")
+        try:
+            import sys
+            sys.path.insert(0, str(BASE_DIR))
+            from publish_lemonsqueezy import publish as ls_publish
+            url = ls_publish(price_cents=int(product["price_eur"] * 100 / 25))  # EUR→CZK approx
+            if url:
+                print(f"   🎉 LIVE: {url}")
+        except Exception as e:
+            print(f"   ⚠ Lemon Squeezy publish selhal: {e}")
+            print(f"   → Ruční upload: python3 publish_lemonsqueezy.py")
+    else:
+        print(f"\n→ Nastav LEMONSQUEEZY_API_KEY pro auto-publish, nebo:")
+        print(f"   python3 publish_lemonsqueezy.py")
 
     return str(pdf_path) if result else str(content_path)
 
