@@ -258,7 +258,38 @@ def generate_for_lead(lead: dict) -> dict:
     index[slug] = metadata
     save_index(index)
 
+    # Ulož do Supabase web_navrhy (pro JOIN v call queue dashboardu)
+    _save_proposal_to_supabase(lead.get("id", ""), html, slug, url)
+
     return metadata
+
+
+def _save_proposal_to_supabase(lead_id: str, html: str, slug: str, url: str):
+    """Upsertuje návrh do Supabase web_navrhy tabulky."""
+    sb_url = os.getenv("SUPABASE_URL", "")
+    sb_key = os.getenv("SUPABASE_ANON_KEY", "")
+    if not sb_url or not sb_key or not lead_id:
+        return
+    try:
+        import requests as _req
+        row = {"lead_id": lead_id, "html": html[:500000], "slug": slug, "url": url}
+        r = _req.post(
+            f"{sb_url}/rest/v1/web_navrhy",
+            headers={
+                "apikey": sb_key,
+                "Authorization": f"Bearer {sb_key}",
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates,return=minimal",
+            },
+            json=row,
+            timeout=8,
+        )
+        if r.ok:
+            print(f"  📋 Supabase web_navrhy: uloženo ({slug})")
+        else:
+            print(f"  ⚠ Supabase web_navrhy chyba {r.status_code}: {r.text[:80]}")
+    except Exception as e:
+        print(f"  ⚠ Supabase web_navrhy exception: {e}")
 
 
 def load_latest_leads(limit: int = 10) -> list[dict]:
