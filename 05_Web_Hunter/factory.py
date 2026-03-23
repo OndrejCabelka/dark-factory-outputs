@@ -331,6 +331,62 @@ Pravidla:
 # Uloží leady do WebHunter DB — graceful fallback pokud chybí klíče
 # ══════════════════════════════════════════════════════════════════════════════
 
+def find_email(lead: dict) -> str | None:
+    """Zkusí najít email firmy: 1) scrape jejich webu, 2) Google search snippet."""
+    EMAIL_RE = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}", re.I)
+    SKIP_DOMAINS = {"sentry.io","wix.com","wordpress.com","example.com","gmail.com",
+                    "noreply","no-reply","support@","info@shoptet","email@email"}
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; WebHunter/1.0)"}
+
+    def clean(email: str) -> str | None:
+        e = email.strip().lower()
+        if any(s in e for s in SKIP_DOMAINS):
+            return None
+        return e
+
+    # 1. Scrape firemního webu
+    web_url = lead.get("web") or lead.get("web_url", "")
+    if web_url and web_url.startswith("http"):
+        try:
+            r = requests.get(web_url, headers=headers, timeout=6, allow_redirects=True)
+            if r.ok:
+                # Hledej v mailto: odkazech (nejspolehlivější)
+                mailto = re.findall(r'mailto:([^"\'>\s?]+)', r.text, re.I)
+                for m in mailto:
+                    e = clean(m.split("?")[0])
+                    if e:
+                        return e
+                # Fallback: regex v HTML
+                for m in EMAIL_RE.findall(r.text[:50000]):
+                    e = clean(m)
+                    if e:
+                        return e
+        except Exception:
+            pass
+
+    # 2. Google search snippet — hledej "nazev mesto email"
+    serper_key = os.getenv("SERPER_API_KEY", "")
+    if serper_key:
+        nazev = lead.get("nazev") or lead.get("name", "")
+        mesto = lead.get("mesto", "")
+        try:
+            r = requests.post(
+                "https://google.serper.dev/search",
+                headers={"X-API-KEY": serper_key, "Content-Type": "application/json"},
+                json={"q": f"{nazev} {mesto} email kontakt", "gl": "cz", "hl": "cs", "num": 3},
+                timeout=5,
+            )
+            text = r.text
+            for m in EMAIL_RE.findall(text):
+                e = clean(m)
+                if e:
+                    return e
+        except Exception:
+            pass
+
+    return None
+
+
 def save_to_supabase(leads: list[dict]) -> int:
     """Upsertuje leady do Supabase `leads` tabulky. Vrátí počet vložených."""
     if not SUPABASE_URL or not SUPABASE_KEY:
@@ -369,7 +425,7 @@ def save_to_supabase(leads: list[dict]) -> int:
             "obor":            lead.get("obor", "")[:100],
             "mesto":           lead.get("mesto", "")[:100],
             "telefon":         lead.get("telefon") or None,
-            "email":           None,          # e-mail finder není součástí scraperu
+            "email":           find_email(lead),  # scrape web / Serper snippet
             "web_status":      lead.get("web_status", "bez_webu"),
             "web_url":         lead.get("web") or None,
             "web_issues":      [],
