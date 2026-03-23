@@ -233,6 +233,23 @@ def job_f():
 # ── CONTINUOUS LOOP ───────────────────────────────────────────────────────────
 # Pořadí: A → B → C → D → E → F → (pauza LOOP_DELAY_MINUTES) → A → ...
 
+
+
+def job_proposals(limit: int = 20):
+    """Batch generátor HTML návrhů pro leady bez návrhu (WebHunter pipeline)."""
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("batch_proposals", BASE_DIR / "batch_proposals_supabase.py")
+        mod  = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        mod.run_batch(limit=limit, dry_run=False)
+        push_outputs_to_github("WebHunter-proposals")
+        notify("Návrhy vygenerovány ✅", f"Batch {limit} leadů → web_navrhy")
+        log.info(f"✅ job_proposals: {limit} leadů zpracováno")
+    except Exception as e:
+        log.error(f"❌ job_proposals chyba: {e}")
+
+
 LOOP_ORDER = [
     ("a", job_a),
     ("b", job_b),
@@ -278,7 +295,7 @@ def start_api_server():
         api = FastAPI(title="Dark Factory API")
         api.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-        job_map = {"a": job_a, "b": job_b, "c": job_c, "d": job_d, "e": job_e, "f": job_f}
+        job_map = {"a": job_a, "b": job_b, "c": job_c, "d": job_d, "e": job_e, "f": job_f, "proposals": job_proposals}
 
         @api.get("/health")
         def health():
@@ -410,6 +427,7 @@ def _run_scheduled():
     schedule.every().day.at("09:00").do(job_d)
     schedule.every().day.at("10:00").do(job_e)
     schedule.every().day.at("11:00").do(job_f)
+    schedule.every().day.at("05:00").do(job_proposals)  # WebHunter: 20 návrhů/den
     log.info("⏰ Schedule aktivní. Čekám na joby...")
     while True:
         schedule.run_pending()
