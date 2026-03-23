@@ -274,7 +274,7 @@ def _save_proposal_to_supabase(lead_id: str, html: str, slug: str, url: str):
         import requests as _req
         row = {"lead_id": lead_id, "html": html[:500000], "slug": slug, "url": url}
         r = _req.post(
-            f"{sb_url}/rest/v1/web_navrhy",
+            f"{sb_url}/rest/v1/web_navrhy?on_conflict=slug",
             headers={
                 "apikey": sb_key,
                 "Authorization": f"Bearer {sb_key}",
@@ -288,6 +288,20 @@ def _save_proposal_to_supabase(lead_id: str, html: str, slug: str, url: str):
             print(f"  📋 Supabase web_navrhy: uloženo ({slug})")
         else:
             print(f"  ⚠ Supabase web_navrhy chyba {r.status_code}: {r.text[:80]}")
+
+        # Explicitní PATCH stavu leadu — záloha za DB trigger
+        if lead_id:
+            _req.patch(
+                f"{sb_url}/rest/v1/leads?id=eq.{lead_id}",
+                headers={
+                    "apikey": sb_key,
+                    "Authorization": f"Bearer {sb_key}",
+                    "Content-Type": "application/json",
+                    "Prefer": "return=minimal",
+                },
+                json={"stav": "navrh_vygenerovan"},
+                timeout=5,
+            )
     except Exception as e:
         print(f"  ⚠ Supabase web_navrhy exception: {e}")
 
