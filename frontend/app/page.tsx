@@ -368,7 +368,15 @@ function CallQueueTab() {
         <div style={{ background: '#0d1a0d', border: `1px solid ${GREEN}44`, borderRadius: 14, padding: 20, marginBottom: 20 }}>
           <div style={{ fontSize: 11, color: GREEN, textTransform: 'uppercase' as const, letterSpacing: 2, marginBottom: 10 }}>📞 Zaznamenat výsledek hovoru</div>
           <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{activeLead.name}</div>
-          <div style={{ fontSize: 13, color: GRAY, marginBottom: 16 }}>{activeLead.obor} · {activeLead.mesto} · <span style={{ color: ORANGE }}>{activeLead.telefon || '—'}</span></div>
+          <div style={{ fontSize: 13, color: GRAY, marginBottom: activeLead.proposal_url ? 10 : 16 }}>
+            {activeLead.obor} · {activeLead.mesto} · <span style={{ color: ORANGE }}>{activeLead.telefon || '—'}</span>
+          </div>
+          {activeLead.proposal_url && (
+            <a href={activeLead.proposal_url} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'inline-block', marginBottom: 14, padding: '7px 14px', background: BLUE + '22', border: `1px solid ${BLUE}44`, borderRadius: 8, color: BLUE, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
+              🌐 Zobrazit připravený návrh webu ↗
+            </a>
+          )}
           <input
             value={note} onChange={e => setNote(e.target.value)}
             placeholder="Poznámka k hovoru (volitelné)..."
@@ -414,7 +422,14 @@ function CallQueueTab() {
                   <div style={{ fontSize: 13, color: ORANGE, fontWeight: 700 }}>{lead.telefon || '—'}</div>
                   <div style={{ fontSize: 10, color: GRAY, marginTop: 2 }}>{lead.web_status === 'bez_webu' ? '🔴 bez webu' : lead.web_status === 'jen_social' ? '🟡 jen FB' : '🟠 špatný web'}</div>
                 </div>
-                <div style={{ fontSize: 10, color: isActive ? GREEN : GRAY, flexShrink: 0 }}>{isActive ? '▼ rozbaleno' : '▶ vybrat'}</div>
+                {lead.proposal_url && (
+                  <a href={lead.proposal_url} target="_blank" rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    style={{ flexShrink: 0, padding: '5px 10px', background: BLUE + '22', border: `1px solid ${BLUE}44`, borderRadius: 6, color: BLUE, fontSize: 11, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' as const }}>
+                    🌐 Návrh
+                  </a>
+                )}
+                <div style={{ fontSize: 10, color: isActive ? GREEN : GRAY, flexShrink: 0 }}>{isActive ? '▼' : '▶'}</div>
               </div>
             )
           })}

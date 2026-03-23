@@ -23,7 +23,7 @@ export async function GET() {
 
     const { data, error, count } = await db
       .from('leads')
-      .select('*', { count: 'exact' })
+      .select('*, web_navrhy(url, slug)', { count: 'exact' })
       .or(
         `stav.in.(navrh_vygenerovan,novy),` +
         `and(stav.eq.nedostupny,call_attempt.lt.3,updated_at.lt.${cutoff24h})`
@@ -35,8 +35,16 @@ export async function GET() {
 
     if (error) throw error
 
+    // Přidej proposal_url z web_navrhy join nebo z GitHub Pages slug
+    const BASE_PROPOSALS = 'https://ondrejcabelka.github.io/dark-factory-outputs/navrhy'
+    const leads = (data || []).map((lead: any) => {
+      const navrh = Array.isArray(lead.web_navrhy) ? lead.web_navrhy[0] : lead.web_navrhy
+      const proposal_url = navrh?.url || (navrh?.slug ? `${BASE_PROPOSALS}/${navrh.slug}/` : null)
+      return { ...lead, proposal_url, web_navrhy: undefined }
+    })
+
     return NextResponse.json({
-      leads: data || [],
+      leads,
       total: count || 0,
       supabase_configured: true,
     })
