@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elektroinstalace Brno – Profesionální elektrikář</title>
+  <meta name="description" content="Profesionální elektrikář v Brně a okolí. Elektroinstalace, revize elektro, hromosvod, fotovoltaika, rekonstrukce rozvodů. Volejte +420775356885">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #F5C500;
+      --primary-dark: #d4a900;
+      --primary-light: #fff3b0;
+      --dark: #0d0f14;
+      --dark2: #13161e;
+      --dark3: #1a1e2a;
+      --dark4: #222736;
+      --text: #e8eaf0;
+      --text-muted: #9aa0b4;
+      --white: #ffffff;
+      --card-bg: #181c27;
+      --border: #2a2f3f;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.35);
+      --shadow-hover: 0 8px 40px rgba(245,197,0,0.18);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--dark2);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* ─── BANNER ─── */
+    #proposal-banner {
+      position: relative;
+      z-index: 1000;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      background: rgba(13, 15, 20, 0.97);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.15;
+    }
+
+    .logo-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+
+    .logo-sub {
+      font-size: 11px;
+      color: var(--primary);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+
+    .btn-call-header {
+      background: var(--primary);
+      color: var(--dark);
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, transform 0.15s;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .btn-call-header:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .hide-mobile {
+      display: flex;
+    }
+
+    /* ─── HERO ─── */
+    #hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      background: var(--dark);
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 60% 50%, rgba(245,197,0,0.12) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 80% at 10% 80%, rgba(245,197,0,0.07) 0%, transparent 60%),
+        linear-gradient(135deg, #0a0c12 0%, #0d1020 40%, #111520 100%);
+      z-index: 0;
+    }
+
+    .hero-grid-pattern {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(245,197,0,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,197,0,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 0;
+    }
+
+    .hero-bolt-deco {
+      position: absolute;
+      right: -40px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: clamp(200px, 30vw, 380px);
+      opacity: 0.04;
+      z-index: 0;
+      line-height: 1;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 100px 20px 80px;
+      width: 100%;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(245,197,0,0.12);
+      border: 1px solid rgba(245,197,0,0.3);
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 28px;
+      letter-spacing: 0.3px;
+    }
+
+    .hero-content h1 {
+      font-size: clamp(32px, 5.5vw, 68px);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -1.5px;
+      color: var(--white);
+      margin-bottom: 24px;
+      max-width: 820px;
+    }
+
+    .hero-content h1 span {
+      color: var(--primary);
+    }
+
+    .hero-subtitle {
+      font-size: clamp(16px, 2.2vw, 20px);
+      color: var(--text-muted);
+      margin-bottom: 44px;
+      max-width: 560px;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    .hero-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 60px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--dark);
+      font-weight: 700;
+      font-size: 16px;
+      padding: 16px 32px;
+      border-radius: var(--radius);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(245,197,0,0.35);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(245,197,0,0.5);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--white);
+      font-weight: 600;
+      font-size: 16px;
+      padding: 15px 32px;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary);
+      background: rgba(245,197,0,0.07);
+      transform: translateY(-2px);
+    }
+
+    .hero-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+    }
+
+    .hero-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .hero-stat-number {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .hero-stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* ─── SECTION SHARED ─── */
+    section {
+      padding: 90px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 14px;
+    }
+
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    .section-title {
+      font-size: clamp(26px, 4vw, 44px);
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+
+    .section-desc {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 560px;
+      line-height: 1.65;
+    }
+
+    .section-header {
+      margin-bottom: 56px;
+    }
+
+    /* ─── SERVICES ─── */
+    #sluzby {
+      background: var(--dark);
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .service-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 28px;
+      transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .service-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-hover);
+      border-color: rgba(245,197,0,0.3);
+    }
+
+    .service-card:hover::before {
+      opacity: 1;
+    }
+
+    .service-icon {
+      width: 56px;
+      height: 56px;
+      background: rgba(245,197,0,0.1);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 20px;
+      transition: background 0.25s;
+    }
+
+    .service-card:hover .service-icon {
+      background: rgba(245,197,0,0.18);
+    }
+
+    .service-card h3 {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+    }
+
+    .service-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    .service-card-arrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: opacity 0.25s, transform 0.25s;
+    }
+
+    .service-card:hover .service-card-arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ─── WHY US ─── */
+    #proc-my {
+      background: var(--dark2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #proc-my::before {
+      content: '';
+      position: absolute;
+      top: -200px;
+      left: -200px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(245,197,0,0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .benefit-card {
+      background: var(--dark3);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    }
+
+    .benefit-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+      border-color: rgba(245,197,0,0.2);
+    }
+
+    .benefit-number {
+      font-size: 48px;
+      font-weight: 900;
+      color: rgba(245,197,0,0.15);
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+
+    .benefit-icon-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .benefit-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(245,197,0,0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .benefit-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+
+    .benefit-card p {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* ─── REVIEWS ─── */
+    #reference {
+      background: var(--dark);
+    }
+
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .review-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+
+    .review-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+    }
+
+    .review-stars {
+      display: flex;
+      gap: 3px;
+      font-size: 18px;
+    }
+
+    .review-text {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.7;
+      flex: 1;
+      font-style: italic;
+    }
+
+    .review-text::before {
+      content: '"';
+      font-size: 40px;
+      color: var(--primary);
+      line-height: 0;
+      vertical-align: -14px;
+      margin-right: 4px;
+      font-style: normal;
+    }
+
+    .review-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .review-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--dark);
+      flex-shrink: 0;
+    }
+
+    .review-name {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--white);
+    }
+
+    .review-location {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ─── CONTACT ─── */
+    #kontakt {
+      background: var(--dark2);
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: var(--dark3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .contact-item:hover {
+      border-color: rgba(245,197,0,0.3);
+      transform: translateX(4px);
+    }
+
+    .contact-item-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(245,197,0,0.1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .contact-item-content {
+      flex: 1;
+    }
+
+    .contact-item-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .contact-item-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    .contact-item-value a {
+      color: var(--primary);
+      transition: color 0.2s;
+    }
+
+    .contact-item-value a:hover {
+      color: var(--primary-dark);
+    }
+
+    .map-placeholder {
+      background: var(--dark3);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      height: 100%;
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      position: relative;
+    }
+
+    .map-grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(245,197,0,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,197,0,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .map-pin {
+      position: relative;
+      z-index: 1;
+      font-size: 48px;
+    }
+
+    .map-text {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .map-text strong {
+      display: block;
+      font-size: 16px;
+      color: var(--white);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .map-text span {
+      font-size: 13px;
