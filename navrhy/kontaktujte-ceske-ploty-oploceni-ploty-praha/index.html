@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>České Ploty Praha – Profesionální oplocení</title>
+  <meta name="description" content="Profesionální montáž a výroba plotů v Praze a okolí. Rychlý servis, kvalita garantována, přijatelné ceny. Volejte +420774600934">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #2e7d32;
+      --primary-dark: #1b5e20;
+      --primary-light: #4caf50;
+      --primary-glow: #66bb6a;
+      --accent: #f9a825;
+      --accent-dark: #f57f17;
+      --dark: #0d1a0e;
+      --dark2: #1a2e1b;
+      --dark3: #243625;
+      --text: #1a1a1a;
+      --text-light: #555;
+      --text-muted: #888;
+      --white: #ffffff;
+      --bg-light: #f4f9f4;
+      --bg-card: #ffffff;
+      --border: #e0ece0;
+      --shadow: 0 4px 24px rgba(46,125,50,0.10);
+      --shadow-hover: 0 8px 40px rgba(46,125,50,0.18);
+      --radius: 12px;
+      --radius-lg: 20px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background: var(--white);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ===== BANNER ===== */
+    #proposal-banner {
+      position: relative;
+      z-index: 1000;
+    }
+
+    /* ===== NAVBAR ===== */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      background: rgba(13, 26, 14, 0.97);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(76,175,80,0.15);
+      padding: 0 20px;
+    }
+
+    .navbar {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .logo-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+
+    .logo-sub {
+      font-size: 11px;
+      color: var(--primary-glow);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      color: var(--white);
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 14px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 16px rgba(76,175,80,0.35);
+    }
+
+    .nav-cta:hover {
+      background: linear-gradient(135deg, var(--primary-glow), var(--primary-light));
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(76,175,80,0.45);
+    }
+
+    .nav-cta .phone-icon {
+      font-size: 16px;
+    }
+
+    /* ===== HERO ===== */
+    #hero {
+      background: linear-gradient(135deg, #0d1a0e 0%, #1b3a1c 40%, #0f2a10 70%, #0d1a0e 100%);
+      position: relative;
+      overflow: hidden;
+      padding: 90px 20px 80px;
+      min-height: 90vh;
+      display: flex;
+      align-items: center;
+    }
+
+    #hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 80% 20%, rgba(76,175,80,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 10% 80%, rgba(46,125,50,0.10) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    #hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: linear-gradient(to bottom, transparent, rgba(13,26,14,0.5));
+      pointer-events: none;
+    }
+
+    .hero-pattern {
+      position: absolute;
+      inset: 0;
+      opacity: 0.03;
+      background-image: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 40px,
+        rgba(76,175,80,1) 40px,
+        rgba(76,175,80,1) 42px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 40px,
+        rgba(76,175,80,1) 40px,
+        rgba(76,175,80,1) 42px
+      );
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(76,175,80,0.15);
+      border: 1px solid rgba(76,175,80,0.3);
+      color: var(--primary-glow);
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      letter-spacing: 0.3px;
+    }
+
+    #hero h1 {
+      font-size: clamp(32px, 5vw, 62px);
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1.12;
+      margin-bottom: 22px;
+      letter-spacing: -1.5px;
+      max-width: 750px;
+    }
+
+    #hero h1 span {
+      background: linear-gradient(135deg, var(--primary-glow), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-perex {
+      font-size: clamp(16px, 2vw, 20px);
+      color: rgba(255,255,255,0.75);
+      margin-bottom: 40px;
+      max-width: 560px;
+      line-height: 1.65;
+      font-weight: 400;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 56px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      color: var(--white);
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 16px;
+      transition: all 0.25s ease;
+      box-shadow: 0 6px 30px rgba(76,175,80,0.4);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, var(--primary-glow), var(--primary-light));
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(76,175,80,0.55);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(255,255,255,0.08);
+      color: var(--white);
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 16px;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      transition: all 0.25s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.4);
+      transform: translateY(-2px);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-number {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .stat-number span {
+      color: var(--primary-glow);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      margin-top: 3px;
+      font-weight: 500;
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 40px;
+      background: rgba(255,255,255,0.12);
+      align-self: center;
+    }
+
+    /* ===== SECTIONS COMMON ===== */
+    .section-header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .section-tag {
+      display: inline-block;
+      background: rgba(46,125,50,0.1);
+      color: var(--primary);
+      padding: 5px 14px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .section-header h2 {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -1px;
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+
+    .section-header p {
+      color: var(--text-light);
+      font-size: 17px;
+      max-width: 540px;
+      margin: 0 auto;
+      line-height: 1.65;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* ===== SLUZBY ===== */
+    #sluzby {
+      padding: 96px 20px;
+      background: var(--bg-light);
+    }
+
+    .sluzby-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .sluzba-karta {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 36px 28px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sluzba-karta::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-glow));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+
+    .sluzba-karta:hover::before {
+      transform: scaleX(1);
+    }
+
+    .sluzba-karta:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-6px);
+      border-color: rgba(76,175,80,0.2);
+    }
+
+    .karta-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, rgba(76,175,80,0.12), rgba(46,125,50,0.08));
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(76,175,80,0.15);
+    }
+
+    .sluzba-karta h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+    }
+
+    .sluzba-karta p {
+      color: var(--text-light);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .karta-badge {
+      display: inline-block;
+      background: rgba(76,175,80,0.1);
+      color: var(--primary);
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-top: 16px;
+    }
+
+    /* ===== PROC MY ===== */
+    #proc-my {
+      padding: 96px 20px;
+      background: var(--white);
+    }
+
+    .proc-my-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .benefity-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+    }
+
+    .benefit-item {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .benefit-icon-wrap {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      box-shadow: 0 6px 20px rgba(46,125,50,0.3);
+    }
+
+    .benefit-text h3 {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+
+    .benefit-text p {
+      color: var(--text-light);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    /* ===== CTA BANNER ===== */
+    .cta-banner {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--dark2) 50%, var(--primary-dark) 100%);
+      padding: 72px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(76,175,80,0.12) 0%, transparent 70%);
+    }
+
+    .cta-banner-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .cta-banner h2 {
+      font-size: clamp(26px, 4vw, 40px);
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 14px;
+      letter-spacing: -0.8px;
+    }
+
+    .cta-banner p {
+      color: rgba(255,255,255,0.7);
+      font-size: 17px;
+      margin-bottom: 36px;
+    }
+
+    /* ===== REFERENCE ===== */
+    #reference {
+      padding: 96px 20px;
+      background: var(--bg-light);
+    }
+
+    .reference-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .recenze-karta {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .recenze-karta:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-4px);
+    }
+
+    .hvezdicky {
+      display: flex;
+      gap: 3px;
+      margin-bottom: 16px;
+    }
+
+    .hvezdicky span {
+      font-size: 18px;
+      color: var(--accent);
+    }
+
+    .recenze-text {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.7;
+      margin-bottom: 22px;
+      font-style: italic;
+      position: relative;
+    }
+
+    .recenze-text::before {
+      content: '"';
+      font-size: 60px;
+      color: rgba(76,175,80,0.12);
+      font-family: Georgia, serif;
+      line-height: 1;
+      position: absolute;
+      top: -10px;
+      left: -8px;
+    }
+
+    .recenze-autor {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .autor-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+      flex-shrink: 0;
+    }
+
+    .autor-avatar.green { background: linear-gradient(135deg, #4caf50, #2e7d32); }
+    .autor-avatar.teal { background: linear-gradient(135deg, #26a69a, #00796b); }
+    .autor-avatar.lime { background: linear-gradient(135deg, #8bc34a, #558b2f); }
+
+    .autor-info strong {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .autor-info span {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* ===== KONTAKT ===== */
+    #kontakt {
+      padding: 96px 20px;
+      background: var(--white);
+    }
+
+    .kontakt-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .kontakt-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    .kontakt-info {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .kontakt-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 24px;
+      background: var(--bg-light);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      transition: all 0.25s ease;
+    }
+
+    .kontakt-item:hover {
+      border-color: rgba(76,175,80,0.3);
+      box-shadow: var(--shadow);
+    }
+
+    .kontakt-item-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .kontakt-item-info {
+      flex: 1;
+    }
+
+    .kontakt-item-info strong {
+      display: block;
+      font-size: 13px;
+      font-weight:
