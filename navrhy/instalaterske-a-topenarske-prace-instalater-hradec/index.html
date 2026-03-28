@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instalatérské a topenářské práce – Hradec Králové</title>
+  <meta name="description" content="Profesionální instalatér v Hradec Králové. Oprava potrubí, instalace koupelen, výměna bojlerů, ústřední topení, havárie 24/7. Volejte +420608382251">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #1a6fb5;
+      --primary-dark: #0f4f8a;
+      --primary-light: #2d8fe0;
+      --accent: #f0a500;
+      --dark: #0d1b2a;
+      --dark-2: #162232;
+      --text: #1e2d3d;
+      --text-light: #4a6070;
+      --white: #ffffff;
+      --bg-light: #f4f8fc;
+      --bg-section: #eaf2fb;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(26,111,181,0.10);
+      --shadow-hover: 0 8px 36px rgba(26,111,181,0.18);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background: var(--white);
+      line-height: 1.6;
+    }
+
+    /* ===== BANNER ===== */
+    #proposal-banner {
+      position: relative;
+      z-index: 1000;
+    }
+
+    /* ===== HEADER / NAV ===== */
+    header {
+      background: var(--dark);
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.2;
+    }
+
+    .logo-sub {
+      font-size: 11px;
+      color: #8aadc7;
+      font-weight: 400;
+      line-height: 1.2;
+    }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary);
+      color: var(--white);
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .nav-cta:hover {
+      background: var(--primary-light);
+    }
+
+    .nav-cta span {
+      font-size: 16px;
+    }
+
+    /* ===== HERO ===== */
+    #hero {
+      background: linear-gradient(135deg, #0a1929 0%, #0d2744 40%, #0f3d6e 70%, #1a5a9a 100%);
+      position: relative;
+      overflow: hidden;
+      padding: 80px 20px 90px;
+    }
+
+    #hero::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      right: -120px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(26,111,181,0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    #hero::after {
+      content: '';
+      position: absolute;
+      bottom: -60px;
+      left: -80px;
+      width: 350px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(45,143,224,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(26,111,181,0.35);
+      border: 1px solid rgba(45,143,224,0.4);
+      color: #7ec8f5;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 50px;
+      margin-bottom: 24px;
+      letter-spacing: 0.3px;
+    }
+
+    #hero h1 {
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.2;
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+    }
+
+    #hero h1 span {
+      color: #5ab4f0;
+    }
+
+    .hero-sub {
+      font-size: clamp(15px, 2.5vw, 19px);
+      color: #a8c8e8;
+      margin-bottom: 36px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary);
+      color: var(--white);
+      text-decoration: none;
+      padding: 15px 28px;
+      border-radius: var(--radius);
+      font-weight: 700;
+      font-size: 16px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(26,111,181,0.4);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(26,111,181,0.5);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: var(--white);
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 16px;
+      border: 2px solid rgba(255,255,255,0.35);
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.6);
+      transform: translateY(-2px);
+    }
+
+    .hero-stats {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 52px;
+      padding-top: 40px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1;
+    }
+
+    .stat-num span {
+      color: #5ab4f0;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #7a9db8;
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== SEKCE OBECNĚ ===== */
+    .section-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-tag {
+      display: inline-block;
+      background: rgba(26,111,181,0.1);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 50px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .section-header h2 {
+      font-size: clamp(24px, 4vw, 38px);
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 12px;
+      letter-spacing: -0.3px;
+    }
+
+    .section-header p {
+      font-size: 16px;
+      color: var(--text-light);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* ===== SLUŽBY ===== */
+    #sluzby {
+      padding: 80px 20px;
+      background: var(--white);
+    }
+
+    .sluzby-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .sluzby-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .sluzba-karta {
+      background: var(--white);
+      border: 1.5px solid #ddeaf7;
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      transition: all 0.25s;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sluzba-karta::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .sluzba-karta:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-4px);
+      border-color: #b0d0ef;
+    }
+
+    .sluzba-karta:hover::before {
+      opacity: 1;
+    }
+
+    .karta-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #e8f2fb, #d0e8f8);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+
+    .karta-nazev {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 10px;
+    }
+
+    .karta-popis {
+      font-size: 14px;
+      color: var(--text-light);
+      line-height: 1.65;
+    }
+
+    .karta-badge {
+      display: inline-block;
+      margin-top: 16px;
+      background: rgba(26,111,181,0.08);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .karta-badge.urgent {
+      background: rgba(220,50,50,0.1);
+      color: #c0392b;
+    }
+
+    /* ===== PROČ MY ===== */
+    #proc-my {
+      padding: 80px 20px;
+      background: linear-gradient(180deg, #eaf2fb 0%, #f4f8fc 100%);
+    }
+
+    .procmy-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .procmy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+    }
+
+    .benefit-karta {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 36px 28px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+
+    .benefit-karta:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .benefit-icon {
+      width: 68px;
+      height: 68px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      margin: 0 auto 20px;
+    }
+
+    .benefit-nazev {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 10px;
+    }
+
+    .benefit-popis {
+      font-size: 14px;
+      color: var(--text-light);
+      line-height: 1.65;
+    }
+
+    /* ===== REFERENCE ===== */
+    #reference {
+      padding: 80px 20px;
+      background: var(--white);
+    }
+
+    .reference-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .reference-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .recenze-karta {
+      background: var(--bg-light);
+      border: 1.5px solid #ddeaf7;
+      border-radius: var(--radius);
+      padding: 28px;
+      transition: all 0.25s;
+      box-shadow: var(--shadow);
+    }
+
+    .recenze-karta:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .hvezdicky {
+      color: var(--accent);
+      font-size: 18px;
+      margin-bottom: 14px;
+      letter-spacing: 2px;
+    }
+
+    .recenze-text {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.7;
+      font-style: italic;
+      margin-bottom: 18px;
+    }
+
+    .recenze-text::before {
+      content: '"';
+      font-size: 40px;
+      color: var(--primary);
+      line-height: 0;
+      vertical-align: -16px;
+      margin-right: 4px;
+      font-style: normal;
+      opacity: 0.4;
+    }
+
+    .recenzent {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .recenzent-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .recenzent-jmeno {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--dark);
+    }
+
+    .recenzent-info {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    /* ===== KONTAKT ===== */
+    #kontakt {
+      padding: 80px 20px;
+      background: linear-gradient(180deg, #eaf2fb 0%, #f4f8fc 100%);
+    }
+
+    .kontakt-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .kontakt-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    @media (max-width: 720px) {
+      .kontakt-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .kontakt-info h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 24px;
+    }
+
+    .kontakt-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .kontakt-item-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .kontakt-item-label {
+      font-size: 12px;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .kontakt-item-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .kontakt-item-value a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .kontakt-item-value a:hover {
+      text-decoration: underline;
+    }
+
+    .kontakt-urgency {
+      background: linear-gradient(135deg, #c0392b, #e74c3c);
+      color: white;
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .kontakt-urgency-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .kontakt-urgency-title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .kontakt-urgency-text {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-top: 2px;
+    }
+
+    .mapa-placeholder {
+      background: linear-gradient(135deg, #1a3a5c, #0d2744);
+      border-radius: var(--radius);
+      height: 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #a8c8e8;
+      font-size: 15px;
+      text-align: center;
+      border: 1.5px solid #2a4a6c;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mapa-placeholder::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(26,111,181,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,111,181,0.08) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .mapa-pin {
+      font-size: 48px;
+      position: relative;
+      z-index: 2;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .mapa-text {
+      position: relative;
+      z-index: 2;
+    }
+
+    .mapa-adresa {
+      font-weight: 700;
+      color: white;
+      font-size: 16px;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--dark);
+      color: #7a9db8;
+      padding: 36px 20px;
+    }
+
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-logo-icon {
+      width: 34px;
+      height: 34px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .footer-logo-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #a8c8e8
