@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instalatér - Topenář Jaromír Havlíček | Hradec Králové</title>
+<meta name="description" content="Profesionální instalatér a topenář v Hradci Králové. Opravy potrubí, instalace koupelen, výměna bojlerů, havárie 24/7, ústřední topení.">
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --primary: #1a6fc4;
+  --primary-dark: #1257a0;
+  --primary-light: #3b8de0;
+  --accent: #f0a500;
+  --dark: #0d1b2a;
+  --dark2: #1a2d42;
+  --text: #1e293b;
+  --text-light: #64748b;
+  --white: #ffffff;
+  --bg-light: #f0f6ff;
+  --border: #e2eaf4;
+  --radius: 14px;
+  --shadow: 0 4px 24px rgba(26,111,196,0.10);
+  --shadow-lg: 0 8px 40px rgba(26,111,196,0.16);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--white);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ─── BANNER ─── */
+#proposal-banner {
+  position: relative;
+  z-index: 1000;
+}
+
+/* ─── HEADER ─── */
+header {
+  background: var(--dark);
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  border-bottom: 3px solid var(--primary);
+}
+
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+  gap: 12px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.logo-icon {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.logo-name {
+  color: var(--white);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+
+.logo-sub {
+  color: var(--primary-light);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.header-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: var(--white);
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(26,111,196,0.35);
+}
+
+.header-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(26,111,196,0.45);
+}
+
+/* ─── HERO ─── */
+#hero {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1a2d42 40%, #1a4a7a 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 90px 20px 80px;
+}
+
+#hero::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -120px;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(26,111,196,0.22) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+#hero::after {
+  content: '';
+  position: absolute;
+  bottom: -100px;
+  left: -80px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(59,141,224,0.13) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-inner {
+  max-width: 780px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(26,111,196,0.22);
+  border: 1px solid rgba(59,141,224,0.35);
+  color: #7ec8f7;
+  padding: 7px 16px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 26px;
+  letter-spacing: 0.03em;
+}
+
+#hero h1 {
+  color: var(--white);
+  font-size: clamp(28px, 5.5vw, 52px);
+  font-weight: 800;
+  line-height: 1.18;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+}
+
+#hero h1 span {
+  color: #60b4f7;
+}
+
+.hero-sub {
+  color: #a8c8e8;
+  font-size: clamp(15px, 2.2vw, 18px);
+  margin-bottom: 40px;
+  max-width: 580px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.65;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: var(--white);
+  text-decoration: none;
+  padding: 16px 32px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 6px 24px rgba(26,111,196,0.45);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 32px rgba(26,111,196,0.55);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.25);
+  color: var(--white);
+  text-decoration: none;
+  padding: 14px 30px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  backdrop-filter: blur(6px);
+}
+
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.45);
+  transform: translateY(-3px);
+}
+
+.hero-stats {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  margin-top: 54px;
+  flex-wrap: wrap;
+}
+
+.hero-stat {
+  text-align: center;
+}
+
+.hero-stat-num {
+  color: var(--white);
+  font-size: 28px;
+  font-weight: 800;
+  display: block;
+  line-height: 1;
+}
+
+.hero-stat-label {
+  color: #7aaccc;
+  font-size: 12.5px;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.hero-stat-divider {
+  width: 1px;
+  background: rgba(255,255,255,0.15);
+  height: 44px;
+  align-self: center;
+}
+
+/* ─── SECTIONS SHARED ─── */
+section {
+  padding: 80px 20px;
+}
+
+.section-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-light);
+  color: var(--primary);
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.section-title {
+  font-size: clamp(24px, 4vw, 38px);
+  font-weight: 800;
+  color: var(--dark);
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.section-desc {
+  color: var(--text-light);
+  font-size: 16px;
+  max-width: 560px;
+  line-height: 1.65;
+}
+
+/* ─── SERVICES ─── */
+#sluzby {
+  background: var(--bg-light);
+}
+
+.sluzby-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.sluzby-header .section-desc {
+  margin: 0 auto;
+}
+
+.sluzby-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 22px;
+}
+
+.sluzba-karta {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.sluzba-karta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  transform: scaleX(0);
+  transition: transform 0.3s;
+  transform-origin: left;
+}
+
+.sluzba-karta:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(26,111,196,0.2);
+}
+
+.sluzba-karta:hover::before {
+  transform: scaleX(1);
+}
+
+.sluzba-ikona {
+  width: 58px;
+  height: 58px;
+  background: linear-gradient(135deg, #dbeeff, #c5deff);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  margin-bottom: 20px;
+  transition: transform 0.25s;
+}
+
+.sluzba-karta:hover .sluzba-ikona {
+  transform: scale(1.08) rotate(-4deg);
+}
+
+.sluzba-nazev {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 10px;
+}
+
+.sluzba-popis {
+  color: var(--text-light);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.sluzba-havarie {
+  background: linear-gradient(135deg, #0d1b2a, #1a2d42);
+  border-color: var(--primary);
+}
+
+.sluzba-havarie .sluzba-ikona {
+  background: linear-gradient(135deg, rgba(26,111,196,0.3), rgba(59,141,224,0.2));
+}
+
+.sluzba-havarie .sluzba-nazev {
+  color: var(--white);
+}
+
+.sluzba-havarie .sluzba-popis {
+  color: #9ab5cc;
+}
+
+.sluzba-havarie .havarie-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(240,165,0,0.15);
+  border: 1px solid rgba(240,165,0,0.3);
+  color: #f0c040;
+  padding: 5px 11px;
+  border-radius: 50px;
+  font-size: 11.5px;
+  font-weight: 700;
+  margin-top: 14px;
+  letter-spacing: 0.05em;
+}
+
+/* ─── PROC MY ─── */
+#proc-my {
+  background: var(--white);
+}
+
+.proc-my-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.proc-my-text {}
+
+.proc-my-text .section-title {
+  margin-bottom: 16px;
+}
+
+.proc-my-text .section-desc {
+  margin-bottom: 36px;
+}
+
+.benefity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.benefit-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.benefit-ikona {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--bg-light), #dbeeff);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.benefit-content {}
+
+.benefit-nazev {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 5px;
+}
+
+.benefit-popis {
+  color: var(--text-light);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+.proc-my-visual {
+  background: linear-gradient(135deg, #0d1b2a, #1a2d42, #1a4070);
+  border-radius: 20px;
+  padding: 40px 36px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.proc-my-visual::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle, rgba(26,111,196,0.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.visual-icon-big {
+  font-size: 70px;
+  margin-bottom: 22px;
+  display: block;
+  filter: drop-shadow(0 4px 16px rgba(26,111,196,0.4));
+}
+
+.visual-title {
+  color: var(--white);
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.visual-sub {
+  color: #8ab2cc;
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 240px;
+}
+
+.visual-stats {
+  display: flex;
+  gap: 24px;
+  margin-top: 30px;
+  justify-content: center;
+}
+
+.visual-stat {
+  text-align: center;
+}
+
+.visual-stat-num {
+  color: #60b4f7;
+  font-size: 26px;
+  font-weight: 800;
+  display: block;
+}
+
+.visual-stat-label {
+  color: #6a92aa;
+  font-size: 11.5px;
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+/* ─── REFERENCE ─── */
+#reference {
+  background: var(--bg-light);
+}
+
+.reference-header {
+  text-align: center;
+  margin-bottom: 46px;
+}
+
+.reference-header .section-desc {
+  margin: 0 auto;
+}
+
+.reference-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+}
+
+.recenze-karta {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 30px 28px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+
+.recenze-karta:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.recenze-hvezdy {
+  color: #f0a500;
+  font-size: 17px;
+  margin-bottom: 14px;
+  letter-spacing: 2px;
+}
+
+.recenze-text {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.65;
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
+.recenze-autor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.recenze-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.recenze-jmeno {
+  font-weight: 700;
+  color: var(--dark);
+  font-size: 15px;
+}
+
+.recenze-lokace {
+  color: var(--text-light);
+  font-size: 12.5px;
+  margin-top: 2px;
+}
+
+/* ─── KONTAKT ─── */
+#kontakt {
+  background: var(--dark);
+  color: var(--white);
+}
+
+.kontakt-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+.kontakt-text .section-tag {
+  background: rgba(26,111,196,0.2);
+  color: #7ec8f7;
+}
+
+.kontakt-text .section-title {
+  color: var(--white);
+}
+
+.kontakt-text .section-desc {
+  color: #8ab2cc;
+  margin-bottom: 36px;
+}
+
+.kontakt-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.kontakt-info-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.kontakt-info-ikona {
+  width: 46px;
+  height: 46px;
+  background: rgba(26,111,196,0.18);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  border: 1px solid rgba(26,111,196,0.25);
+}
+
+.kontakt-info-label {
+  font-size: 11.5px;
+  color: #6a92aa;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.kontakt-info-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.kontakt-info-value a {
+  color: #7ec8f7;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.kontakt-info-value a:hover {
+  color: var(--white);
+}
+
+.kontakt-mapa {
+  background: var(--dark2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.mapa-placeholder {
+  background: linear-gradient(135deg, #1a2d42, #0f2035);
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mapa-placeholder::before {
+  content: '';
